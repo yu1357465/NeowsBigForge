@@ -1,3 +1,5 @@
+// ================= NeowsBigForge V2.0 定性构筑沙盘核心引擎 =================
+
 let allCards = {};
 let myDeck = [];
 let myDrafts = [];
@@ -8,135 +10,253 @@ const classIcons = {
     "curse": "诅", "status": "状"
 };
 
-// ================= 核心配置区 =================
+// ================= 🎯 初始卡组配置 (全员添加进阶之灾) =================
 const starterTemplates = {
-    "ironclad": ["StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "DefendIronclad", "DefendIronclad", "DefendIronclad", "DefendIronclad", "Bash"],
-    "silent": ["StrikeSilent", "StrikeSilent", "StrikeSilent", "StrikeSilent", "StrikeSilent", "DefendSilent", "DefendSilent", "DefendSilent", "DefendSilent", "DefendSilent", "Survivor", "Neutralize"],
-    "defect": ["StrikeDefect", "StrikeDefect", "StrikeDefect", "StrikeDefect", "DefendDefect", "DefendDefect", "DefendDefect", "DefendDefect", "Zap", "Dualcast"],
-    "necrobinder": ["StrikeNecrobinder", "StrikeNecrobinder", "StrikeNecrobinder", "StrikeNecrobinder", "DefendNecrobinder", "DefendNecrobinder", "DefendNecrobinder", "DefendNecrobinder"],
-    "regent": ["StrikeRegent", "StrikeRegent", "StrikeRegent", "StrikeRegent", "DefendRegent", "DefendRegent", "DefendRegent", "DefendRegent"]
+    "ironclad": ["StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "StrikeIronclad", "DefendIronclad", "DefendIronclad", "DefendIronclad", "DefendIronclad", "Bash", "AscendersBane"],
+    "silent": ["StrikeSilent", "StrikeSilent", "StrikeSilent", "StrikeSilent", "StrikeSilent", "DefendSilent", "DefendSilent", "DefendSilent", "DefendSilent", "DefendSilent", "Survivor", "Neutralize", "AscendersBane"],
+    "defect": ["StrikeDefect", "StrikeDefect", "StrikeDefect", "StrikeDefect", "DefendDefect", "DefendDefect", "DefendDefect", "DefendDefect", "Zap", "Dualcast", "AscendersBane"],
+    "necrobinder": ["StrikeNecrobinder", "StrikeNecrobinder", "StrikeNecrobinder", "StrikeNecrobinder", "DefendNecrobinder", "DefendNecrobinder", "DefendNecrobinder", "DefendNecrobinder", "Bodyguard", "Unleash", "AscendersBane"],
+    "regent": ["StrikeRegent", "StrikeRegent", "StrikeRegent", "StrikeRegent", "DefendRegent", "DefendRegent", "DefendRegent", "DefendRegent", "Falling Star", "Venerate", "AscendersBane"]
 };
 
-// ================= 🎯 超级属性提取引擎 (Middleware) =================
+// ================= 🎯 V2.0 职业专属工作区与动态命名系统 =================
+let slotNames = JSON.parse(localStorage.getItem('SpireV2_SlotNames')) || {};
+
+// 获取当前选中的职业
+function getCurrentClass() {
+    let el = document.getElementById('current-class');
+    return el ? el.value : "ironclad";
+}
+
+// 渲染当前职业专属的 4 个存档槽
+function renderSaveSlots() {
+    const select = document.getElementById('save-slot');
+    if (!select) return;
+
+    const currentClass = getCurrentClass();
+    const previousSelection = select.value;
+
+    select.innerHTML = '';
+    for (let i = 1; i <= 4; i++) {
+        let slotId = `${currentClass}_slot${i}`;
+        let defaultName = `方案 ${i}`;
+        let displayName = slotNames[slotId] || defaultName;
+
+        let opt = document.createElement('option');
+        opt.value = slotId;
+        opt.innerText = displayName;
+        select.appendChild(opt);
+    }
+
+    // 保持选中状态或默认选第一个
+    if (Array.from(select.options).some(opt => opt.value === previousSelection)) {
+        select.value = previousSelection;
+    } else {
+        select.value = `${currentClass}_slot1`;
+    }
+}
+
+// 切换职业时：重新渲染槽位，并自动读取该职业的卡组
+function switchClassWorkspace() {
+    renderSaveSlots();
+    loadDeckFromLocal();
+}
+
+function renameCurrentSlot() {
+    const select = document.getElementById('save-slot');
+    const currentSlot = select.value;
+    const currentName = select.options[select.selectedIndex].text;
+
+    const newName = prompt("给这个卡组方案起个名字吧：", currentName);
+    if (newName !== null && newName.trim() !== "") {
+        slotNames[currentSlot] = newName.trim();
+        localStorage.setItem('SpireV2_SlotNames', JSON.stringify(slotNames));
+        renderSaveSlots();
+    }
+}
+
+function saveDeckToLocal(silent = false) {
+    if (myDeck.length === 0 && !silent) {
+        alert("卡组为空，无需保存！");
+        return;
+    }
+    const slot = document.getElementById('save-slot').value;
+    const deckToSave = myDeck.map(c => ({ id: c.id, isUpgraded: c.isUpgraded }));
+    localStorage.setItem(`SpirePortV2_${slot}`, JSON.stringify(deckToSave));
+    if (!silent) alert(`✅ 已成功保存至当前方案槽！`);
+}
+
+// 读取卡组：如果为空，则自动下发该职业初始牌
+function loadDeckFromLocal() {
+    const slot = document.getElementById('save-slot').value;
+    const currentClass = getCurrentClass();
+    const savedData = localStorage.getItem(`SpirePortV2_${slot}`);
+
+    myDeck = [];
+
+    if (!savedData || JSON.parse(savedData).length === 0) {
+        // 空存档，发初始牌
+        const template = starterTemplates[currentClass] || [];
+        template.forEach(targetId => {
+            let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
+            let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
+            if (realKey) myDeck.push({ ...allCards[realKey], id: realKey, isUpgraded: false });
+        });
+        saveDeckToLocal(true); // 自动静默保存
+    } else {
+        // 正常读取
+        try {
+            const parsedDeck = JSON.parse(savedData);
+            parsedDeck.forEach(sc => {
+                if (allCards[sc.id]) {
+                    myDeck.push({ ...allCards[sc.id], id: sc.id, isUpgraded: sc.isUpgraded });
+                }
+            });
+        } catch (e) {
+            console.error("读取存档失败", e);
+        }
+    }
+    updateWorkshop();
+}
+
+function clearDeck() {
+    if (myDeck.length > 0 && confirm("确定要清空当前卡组吗？\n(注意：这将同时覆盖保存当前槽位为空)")) {
+        myDeck = [];
+        saveDeckToLocal(true); // 静默保存空状态
+        updateWorkshop();
+    }
+}
+
+// 供手动点击“载入初始”按钮使用
+function loadStarterDeck() {
+    if (myDeck.length > 0 && !confirm("一键载入将覆盖卡组，确定继续？")) return;
+    const currentClass = getCurrentClass();
+    const template = starterTemplates[currentClass] || [];
+    myDeck = [];
+
+    template.forEach(targetId => {
+        let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
+        let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
+        if (realKey) myDeck.push({ id: realKey, ...allCards[realKey] });
+    });
+    saveDeckToLocal(true);
+    updateWorkshop();
+}
+
+// ================= 🎯 基础配置与辞典加载 =================
+const AVAILABLE_TAGS = ["过渡输出", "过渡防御", "终端输出", "终端防御", "润滑运转"];
+const AVAILABLE_TIERS = ["S", "A", "B", "C", "F"];
+
+const CLASS_COLORS = {
+    "ironclad": { hex: "#e74c3c", rgb: "231, 76, 60" },
+    "silent": { hex: "#2ecc71", rgb: "46, 204, 113" },
+    "defect": { hex: "#3498db", rgb: "52, 152, 219" },
+    "necrobinder": { hex: "#9b59b6", rgb: "155, 89, 182" },
+    "regent": { hex: "#f1c40f", rgb: "241, 196, 15" },
+    "colorless": { hex: "#95a5a6", rgb: "149, 165, 166" },
+    "curse": { hex: "#34495e", rgb: "52, 73, 94" },
+    "status": { hex: "#7f8c8d", rgb: "127, 140, 141" },
+    "default": { hex: "#2980b9", rgb: "41, 128, 185" }
+};
+
+let cardDictionary = JSON.parse(localStorage.getItem('SpireV2_Dictionary')) || {};
+let currentInspectingCardId = null;
+
+// ================= 🎯 极简属性引擎 =================
 function parseCardStats(card, isUpgraded) {
-    let dmg = card.BaseDamage || card.Damage || 0;
-    let blk = card.BaseBlock || card.Block || 0;
     let cost = card.Cost !== undefined ? card.Cost : (card.BaseCost || 0);
-    let magic = card.BaseMagicNumber || card.MagicNumber || 0;
     let desc = card.Description || "";
 
-    // 🎯 新增：将过牌和回费变量拉入中间件统一管理
-    let cardDraw = 0;
-    let energyGain = 0;
-
     if (isUpgraded) {
-        if (card.UpgradedDamage !== undefined) dmg = card.UpgradedDamage;
-        else if (card.UpgradeDamageBy !== undefined) dmg += card.UpgradeDamageBy;
-        else if (card.UpgradeDamageTo !== undefined) dmg = card.UpgradeDamageTo;
-
-        if (card.UpgradedBlock !== undefined) blk = card.UpgradedBlock;
-        else if (card.UpgradeBlockBy !== undefined) blk += card.UpgradeBlockBy;
-        else if (card.UpgradeBlockTo !== undefined) blk = card.UpgradeBlockTo;
-
         if (card.UpgradedCost !== undefined) cost = card.UpgradedCost;
         else if (card.UpgradeCostTo !== undefined) cost = card.UpgradeCostTo;
-
-        if (card.UpgradedMagicNumber !== undefined) magic = card.UpgradedMagicNumber;
-        else if (card.UpgradeMagicNumberBy !== undefined) magic += card.UpgradeMagicNumberBy;
-        else if (card.UpgradeMagicNumberTo !== undefined) magic = card.UpgradeMagicNumberTo;
 
         if (card.UpgradedDescription) desc = card.UpgradedDescription;
         else if (card.UpgradeDescription) desc = card.UpgradeDescription;
     }
+    return { cost, desc };
+}
 
-    // 暴力替换魔法数字，让文本正则重见光明
-    desc = desc.replace(/!M!/g, magic).replace(/!D!/g, dmg).replace(/!B!/g, blk);
+// ================= 🎨 动态卡牌鉴定面板 (Inspector) =================
+function openInspector(cardId, cardNameZHS) {
+    currentInspectingCardId = cardId;
+    let cardObj = allCards[cardId];
 
-    // ================= 替换 parseCardStats 里的 Middleware 部分 =================
-    // -------------------------------------------------------------
-    // 🎯 V1.3 升级：泛用特征检测 (Feature Detection)
-    // -------------------------------------------------------------
-    let lowerDesc = desc.toLowerCase();
+    let cClass = (cardObj && cardObj.Class) ? cardObj.Class.toLowerCase() : "default";
+    let theme = CLASS_COLORS[cClass] || CLASS_COLORS["default"];
 
-    // 1. 小刀机制全系兼容 (不再硬编码卡牌ID！)
-    let shivs = 0;
-    // 特征检测：只要这牌后端有 BaseCards 变量，且文本里提到了"小刀/shiv"，它就是个小刀制造机！
-    if (card.BaseCards !== undefined && (lowerDesc.includes("小刀") || lowerDesc.includes("shiv"))) {
-        shivs = card.BaseCards;
-        if (isUpgraded && card.UpgradeCardsBy !== undefined) shivs += card.UpgradeCardsBy;
-    } else {
-        // 正则兜底：应对可能没有 BaseCards 变量的情况
-        let shivMatch = desc.match(/(?:添加|将|获得|产生)\s*(\d+)\s*张小刀/);
-        if (shivMatch) shivs = parseInt(shivMatch[1]);
+    let box = document.getElementById('inspector-content-box');
+    if (box) {
+        box.style.borderColor = theme.hex;
+        box.style.boxShadow = `0 0 40px rgba(${theme.rgb}, 0.4), 0 10px 20px rgba(0,0,0,0.1)`;
     }
-    dmg += shivs * 4; // 将小刀数量乘以单发伤害，融入总 EV
 
-    // 2. 负面状态等效格挡 (泛用兼容)
-    let strLoss = 0;
-    if (card.BaseStrengthLoss !== undefined) {
-        strLoss = card.BaseStrengthLoss;
-        if (isUpgraded && card.UpgradeStrengthLossBy !== undefined) strLoss += card.UpgradeStrengthLossBy;
-    } else {
-        let strDownMatch = desc.match(/(?:失去|降低)\s*(\d+)\s*(?:点|层)?\s*力量/);
-        if (strDownMatch) strLoss = parseInt(strDownMatch[1]);
+    let titleEl = document.getElementById('inspector-card-name');
+    if(titleEl) {
+        titleEl.style.color = theme.hex;
+        titleEl.innerText = cardNameZHS;
     }
-    blk += strLoss * 1.5; // 多段攻击折算系数
 
-    // -------------------------------------------------------------
-    // 🎯 机制已适配: Backflip, BattleTrance, BigBang, BrightestFlame, CallOfTheVoid, CaptureSpirit, Coolheaded, Demesne, DrumOfBattle, Entropy
-    // -------------------------------------------------------------
+    let cardData = cardDictionary[cardId] || { tier: "", tags: [] };
 
-    // 解析衍生/抽牌变量
-    if (card.BaseCards !== undefined) {
-        let cardsVal = card.BaseCards;
-        if (isUpgraded && card.UpgradeCardsBy !== undefined) cardsVal += card.UpgradeCardsBy;
+    const tierContainer = document.getElementById('tier-container');
+    tierContainer.innerHTML = '';
+    AVAILABLE_TIERS.forEach(t => {
+        let btn = document.createElement('button');
+        btn.className = `tier-btn tier-${t} ${cardData.tier === t ? 'active' : ''}`;
+        btn.innerText = t;
+        btn.onclick = (e) => {
+            document.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        };
+        tierContainer.appendChild(btn);
+    });
 
-        if (card.Type === "Power" || card.Type === "power") {
-            // 能力牌的长线抽牌暂不计入即时爆发
-        } else if (card.id === "CaptureSpirit" || (card.PowerType && card.PowerType.includes("Soul"))) {
-            // 洗入状态牌，不作为即时抽牌
-        } else if (card.PowerType === "NoDrawPower") {
-            // 战斗专注等限制器，提供巨大过牌，但封锁后续
-            cardDraw += cardsVal;
-        } else {
-            // 常规抽牌或小刀逻辑
-            if (lowerDesc.includes("小刀") || lowerDesc.includes("shiv")) {
-                dmg += cardsVal * 4;
+    const tagContainer = document.getElementById('tag-container');
+    tagContainer.innerHTML = '';
+    AVAILABLE_TAGS.forEach(tag => {
+        let btn = document.createElement('button');
+        btn.className = `tag-btn ${cardData.tags.includes(tag) ? 'active' : ''}`;
+        btn.innerText = tag;
+        btn.onclick = (e) => {
+            if (e.target.classList.contains('active')) {
+                e.target.classList.remove('active');
             } else {
-                cardDraw += cardsVal;
+                if (document.querySelectorAll('.tag-btn.active').length >= 3) {
+                    alert("一张卡牌最多只能拥有 3 个核心端口定位！");
+                    return;
+                }
+                e.target.classList.add('active');
             }
-        }
-    }
+        };
+        tagContainer.appendChild(btn);
+    });
 
-    // 解析回费逻辑 (如 BigBang 大爆炸)
-    if (card.BaseEnergy !== undefined) {
-        let nrg = card.BaseEnergy;
-        if (isUpgraded && card.UpgradeEnergyBy !== undefined) nrg += card.UpgradeEnergyBy;
-        energyGain += nrg;
-
-        // 回费等效于降低这张牌的成本 (允许出现负费用，代表回费)
-        if (typeof cost === 'number') cost -= nrg;
-    }
-
-    return { dmg, blk, cost, desc, magic, cardDraw, energyGain };
-    // ========================================================================
+    document.getElementById('inspector-modal').style.display = 'flex';
 }
 
-// ================= 数据初始化与组件渲染 =================
-async function loadCards() {
-    try {
-        const response = await fetch('STS2_Card_Database_ZHS.json');
-        allCards = await response.json();
-        renderLibrary();
-        filterCards();
-    } catch (error) {
-        console.error("【系统拦截到的真实报错】:", error);
-        document.getElementById('card-list').innerHTML = "读取图纸失败！请确保开启了本地服务器，并且 JSON 文件名正确。";
-    }
+function closeInspector() {
+    document.getElementById('inspector-modal').style.display = 'none';
 }
 
-// ================= 🎯 替换：纯净版卡牌生成器 (修复 SyntaxError) =================
-function createCardButton(cardName, cardData, modeOrIsDeck = false, index = -1) {
+function saveInspectorData() {
+    let selectedTier = document.querySelector('.tier-btn.active')?.innerText || "";
+    let selectedTags = Array.from(document.querySelectorAll('.tag-btn.active')).map(btn => btn.innerText);
+
+    cardDictionary[currentInspectingCardId] = {
+        tier: selectedTier,
+        tags: selectedTags
+    };
+
+    localStorage.setItem('SpireV2_Dictionary', JSON.stringify(cardDictionary));
+    closeInspector();
+    renderLibrary();
+    filterCards(); // 🎯 关键修复：重新渲染后，立刻读取当前搜索框里的字，保持筛选状态
+    updateWorkshop();
+}
+
+// ================= 🃏 卡牌组件生成器 =================
+function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
     let mode = "library";
     if (modeOrIsDeck === true || modeOrIsDeck === "deck") mode = "deck";
     if (modeOrIsDeck === "draft") mode = "draft";
@@ -149,7 +269,7 @@ function createCardButton(cardName, cardData, modeOrIsDeck = false, index = -1) 
     let stats = parseCardStats(cardData, isUpgraded);
     let cCost = stats.cost !== "Unplayable" && stats.cost !== -1 ? stats.cost : "X";
 
-    let cName = cardData.Name_ZHS || cardName;
+    let cName = cardData.Name_ZHS || cardId;
     if (isUpgraded) cName += "+";
 
     btn.className = `card-btn ${cType} ${cClass}`;
@@ -161,79 +281,399 @@ function createCardButton(cardName, cardData, modeOrIsDeck = false, index = -1) 
         btn.style.borderColor = "#7acc00";
     }
 
-    btn.dataset.id = cardName.toLowerCase();
+    btn.dataset.id = cardId.toLowerCase();
     btn.dataset.name = cName.toLowerCase();
     btn.dataset.cardClass = cClass;
     btn.dataset.type = cType;
     btn.dataset.cost = cCost;
 
-    // 唯一声明 icon 变量的地方，绝不重复！
-    let icon = "?";
-    if (typeof classIcons !== 'undefined' && classIcons[cClass]) {
-        icon = classIcons[cClass];
-    } else {
-        if (cType === "attack") icon = "🗡️";
-        else if (cType === "skill") icon = "🛡️";
-        else if (cType === "power") icon = "✨";
-    }
+    let icon = classIcons[cClass] || "?";
 
-    // 动态生成交互提示文本
-    let overlayText = "";
-    if (mode === "library") {
-        overlayText = `<span class="overlay-left">👆左键: 加卡组</span><span class="overlay-right">🖱️右键: 算推演</span>`;
-    } else if (mode === "deck") {
-        overlayText = `<span class="overlay-left">👆左键: 删卡牌</span><span class="overlay-right">🖱️右键: 升/降级</span>`;
-    } else if (mode === "draft") {
-        overlayText = `<span class="overlay-left">👆左键: 删推演</span><span class="overlay-right">🖱️右键: 升/降级</span>`;
-    }
-
-    let savedInfo = cardDictionary[cardName];
+    let savedInfo = cardDictionary[cardId];
     let tagHtml = "";
     if (savedInfo && (savedInfo.tier || savedInfo.tags.length > 0)) {
         let tierLabel = savedInfo.tier ? `<span class="mini-tag" style="background: #fff2e1; color: #ff9f43; font-weight: bold;">${savedInfo.tier}</span>` : "";
         let tagsLabels = savedInfo.tags.map(t => `<span class="mini-tag">${t}</span>`).join("");
         tagHtml = `<div class="card-tags-display">${tierLabel}${tagsLabels}</div>`;
     }
+
     btn.innerHTML = `<span class="class-icon">[${icon}]</span> ${cName} [${cCost}] ${tagHtml}`;
     btn.draggable = true;
     btn.ondragstart = (e) => {
-        e.dataTransfer.setData('cardId', cardName);
+        e.dataTransfer.setData('cardId', cardId);
         e.dataTransfer.setData('isUpgraded', isUpgraded);
     };
 
     if (mode === "library") {
-        // 左键：加入普通版
         btn.onclick = () => {
             let newCard = JSON.parse(JSON.stringify(cardData));
-            newCard.id = cardName; newCard.isUpgraded = false;
-            myDeck.push(newCard); updateWorkshop();
+            newCard.id = cardId; newCard.isUpgraded = false;
+            myDeck.push(newCard);
+            saveDeckToLocal(true); // 自动静默保存
+            updateWorkshop();
         };
-        // 右键：把原来的右键强化，改成右键打开鉴定面板！
         btn.oncontextmenu = (e) => {
             e.preventDefault();
-            openInspector(cardName, cName);
+            openInspector(cardId, cName);
         };
-    } else if (mode === "deck") {
-        btn.onclick = () => { myDeck.splice(index, 1); updateWorkshop(); };
-        btn.oncontextmenu = (e) => {
-            e.preventDefault();
-            myDeck[index].isUpgraded = !myDeck[index].isUpgraded; updateWorkshop();
+    } else {
+        // 🎯 核心修复：通过对象引用 (indexOf) 来删除/强化卡牌，而不是不可靠的 index
+        let targetArray = mode === "deck" ? myDeck : myDrafts;
+        let updateFn = () => {
+            if (mode === "deck") { saveDeckToLocal(true); updateWorkshop(); } else { updateDrafts(); }
         };
-    } else if (mode === "draft") {
+
         btn.onclick = () => {
-            if(typeof myDrafts !== 'undefined') myDrafts.splice(index, 1);
-            updateDrafts();
+            let realIndex = targetArray.indexOf(cardData);
+            if(realIndex > -1) { targetArray.splice(realIndex, 1); updateFn(); }
         };
         btn.oncontextmenu = (e) => {
             e.preventDefault();
-            if(typeof myDrafts !== 'undefined') myDrafts[index].isUpgraded = !myDrafts[index].isUpgraded;
-            updateDrafts();
+            cardData.isUpgraded = !cardData.isUpgraded;
+            updateFn();
         };
     }
     return btn;
 }
-// ==============================================================================
 
+// ================= ⚙️ V2.0 主卡组运转引擎 =================
+function updateWorkshop() {
+    const deckDiv = document.getElementById('my-deck');
+    const deckCountEl = document.getElementById('deck-count');
+    if (deckCountEl) deckCountEl.innerText = myDeck.length;
+
+    deckDiv.innerHTML = '';
+
+    if (myDeck.length === 0) {
+        deckDiv.innerHTML = '<p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 20px;">👈 点击左侧卡牌加入卡组<br><br>💡 加入后：<b>左键</b>移除，<b>右键</b>强化/降级</p>';
+        updateDashboard(0, 0, 0, 0);
+        saveSessionState(); // 触发记忆保存
+        return;
+    }
+
+    // 🎯 提取下拉框的排序指令
+    let sortType = document.getElementById('deck-sort-select')?.value || "acquire";
+
+    // 创建一个仅用于屏幕显示的浅拷贝数组，绝对不污染 myDeck 原本的“获得顺序”
+    let renderDeck = [...myDeck];
+
+    if (sortType === "cost") {
+        renderDeck.sort((a, b) => {
+            let cA = parseCardStats(a, a.isUpgraded).cost;
+            let cB = parseCardStats(b, b.isUpgraded).cost;
+            if (cA !== cB) return cA - cB;
+            return (a.Name_ZHS || a.id).localeCompare(b.Name_ZHS || b.id);
+        });
+    } else if (sortType === "type") {
+        const typeOrder = { "attack": 1, "skill": 2, "power": 3, "status": 4, "curse": 5 };
+        renderDeck.sort((a, b) => {
+            let tA = typeOrder[(a.Type || "").toLowerCase()] || 99;
+            let tB = typeOrder[(b.Type || "").toLowerCase()] || 99;
+            if (tA !== tB) return tA - tB;
+            return (a.Name_ZHS || a.id).localeCompare(b.Name_ZHS || b.id);
+        });
+    }
+
+    let realTotalCost = 0;
+    let realCardCount = 0; // 🎯 真正的有效牌数量
+    let drawCount = 0;
+    let exhaustCount = 0;
+
+    // 🎯 注意：遍历用于屏幕渲染的数组 (renderDeck)，而且不再传 index，全靠 indexOf 精准定位
+    renderDeck.forEach(card => {
+        deckDiv.appendChild(createCardButton(card.id, card, true));
+
+        let stats = parseCardStats(card, card.isUpgraded);
+
+        // 🎯 核心逻辑：识别并排除基础牌、诅咒和状态牌
+        let lowerName = (card.Name_ZHS || card.id).toLowerCase();
+        let isBasic = lowerName.includes("strike") || lowerName.includes("defend") || lowerName.includes("打击") || lowerName.includes("防御");
+        let isCurseOrStatus = (card.Type || "").toLowerCase() === "curse" || (card.Type || "").toLowerCase() === "status";
+
+        // 只有“有效牌”才计入平均费用的分母
+        if (!isBasic && !isCurseOrStatus) {
+            realCardCount++;
+            if (typeof stats.cost === 'number' && stats.cost > 0) {
+                realTotalCost += stats.cost;
+            }
+        }
+
+        let lowerDesc = stats.desc.toLowerCase();
+        if (lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCount++;
+        if (lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCount++;
+    });
+
+    let deckSize = myDeck.length;
+    // 🎯 真实的平均耗费！
+    let avgCost = realCardCount > 0 ? (realTotalCost / realCardCount) : 0;
+
+    updateDashboard(deckSize, avgCost, drawCount, exhaustCount);
+    updateDrafts();
+    saveSessionState(); // 触发记忆保存
+}
+
+// ================= ⚙️ V2.0 全息仪表盘与概率引擎 =================
+function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
+    const baseEnergy = parseFloat(document.getElementById('base-energy')?.value || 3);
+    const baseDraw = parseInt(document.getElementById('base-draw')?.value || 5);
+
+    // 1. 基础负载渲染
+    let expectedEnergySpend = avgCost * 5;
+    let energyText = document.getElementById('energy-text');
+    let energyFill = document.getElementById('energy-fill');
+    if (energyText && energyFill) {
+        // 🎯 加上文案提示，让你知道基础牌被踢出去了
+        energyText.innerText = `${expectedEnergySpend.toFixed(1)} / ${baseEnergy} (已排除基础牌)`;
+        let pct = Math.min((expectedEnergySpend / baseEnergy) * 100, 100);
+        energyFill.style.width = pct + '%';
+        energyFill.style.backgroundColor = pct > 90 ? '#e74c3c' : (pct > 70 ? '#f39c12' : '#16a085');
+    }
+
+    let dPct = deckSize > 0 ? (drawCount / deckSize) * 100 : 0;
+    let ePct = deckSize > 0 ? (exhaustCount / deckSize) * 100 : 0;
+    let drawFill = document.getElementById('draw-fill');
+    let exFill = document.getElementById('exhaust-fill');
+    let engText = document.getElementById('engine-text');
+    if (drawFill && exFill && engText) {
+        drawFill.style.width = Math.min(dPct, 100) + '%';
+        exFill.style.width = Math.min(ePct, 100) + '%';
+        engText.innerText = `${dPct.toFixed(0)}% 过牌 | ${ePct.toFixed(0)}% 压缩`;
+    }
+
+    // 2. 🎯 端口槽位雷达解析
+    // 设定 30 张牌为标准成型卡组的推荐牌位 (比例化)
+    const TARGET_SLOTS = {
+        "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": 10
+    };
+
+    let tagCounts = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
+    let tagCardNames = { "过渡输出": [], "过渡防御": [], "终端输出": [], "终端防御": [], "润滑运转": [] };
+
+    // 统计当前卡组的标签
+    myDeck.forEach(card => {
+        let info = cardDictionary[card.id];
+        if (info && info.tags) {
+            info.tags.forEach(t => {
+                if (tagCounts[t] !== undefined) {
+                    tagCounts[t]++;
+                    // 收集牌名（去重展示用）
+                    let cName = card.Name_ZHS || card.id;
+                    if (!tagCardNames[t].includes(cName)) tagCardNames[t].push(cName);
+                }
+            });
+        }
+    });
+
+    const portContainer = document.getElementById('port-summary-container');
+    if (portContainer) {
+        portContainer.innerHTML = '';
+        AVAILABLE_TAGS.forEach(tag => {
+            let current = tagCounts[tag];
+            let target = TARGET_SLOTS[tag];
+            let statusColor = current === 0 ? "#e74c3c" : (current > target ? "#f39c12" : "#27ae60");
+            let statusText = current === 0 ? "急缺" : (current > target ? "冗余" : "良好");
+            let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "无";
+
+            let div = document.createElement('div');
+            div.style.background = "#f8f9fa"; div.style.padding = "6px 10px"; div.style.borderRadius = "6px"; div.style.borderLeft = `4px solid ${statusColor}`;
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong style="color:#333;">${tag}</strong>
+                    <span style="color:${statusColor}; font-weight:bold;">${current} / ${target} 牌位 (${statusText})</span>
+                </div>
+                <div style="color:#888; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">包含: ${cardListStr}</div>
+            `;
+            portContainer.appendChild(div);
+        });
+    }
+
+    // 3. 🎯 超几何概率引擎 (合并同名卡)
+    const probContainer = document.getElementById('prob-container');
+    if (probContainer) {
+        probContainer.innerHTML = '';
+        if (deckSize === 0) {
+            probContainer.innerHTML = '<span style="color:#aaa;">等待卡组数据...</span>';
+            return;
+        }
+
+        // 按 ID 合并同名卡
+        let cardGroups = {};
+        myDeck.forEach(card => {
+            if (!cardGroups[card.id]) cardGroups[card.id] = { name: card.Name_ZHS || card.id, count: 0, class: card.Class || "colorless" };
+            cardGroups[card.id].count++;
+        });
+
+        // 转化为数组并根据概率/数量排序
+        let probArray = Object.keys(cardGroups).map(id => {
+            let group = cardGroups[id];
+            // 计算第一回合抽到的概率
+            let prob = hypergeometricProb(deckSize, group.count, baseDraw + drawCount) * 100;
+            return { ...group, prob: prob };
+        });
+
+        // 剔除基础牌，只显示有价值的牌，并按概率从高到低排序
+        probArray = probArray.filter(g => !["Strike", "Defend", "打击", "防御"].some(x => g.name.includes(x)));
+        probArray.sort((a, b) => b.prob - a.prob);
+
+        if (probArray.length === 0) {
+            probContainer.innerHTML = '<span style="color:#aaa;">目前全是基础牌，无需计算。</span>';
+            return;
+        }
+
+        probArray.forEach(item => {
+            let theme = CLASS_COLORS[item.class.toLowerCase()] || CLASS_COLORS.default;
+            let div = document.createElement('div');
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-weight:bold; color:#444;">
+                    <span>${item.name} <span style="color:#999; font-size:0.75rem;">(x${item.count})</span></span>
+                    <span>${item.prob.toFixed(1)}%</span>
+                </div>
+                <div class="port-bar" style="background:#eef0eb; height:8px;">
+                    <div class="port-fill" style="background-color:${theme.hex}; width:${item.prob}%;"></div>
+                </div>
+            `;
+            probContainer.appendChild(div);
+        });
+    }
+}
+
+// ================= ⚖️ V2.0 标签协同推演台 =================
+function updateDrafts() {
+    let tbody = document.getElementById('draft-tbody');
+    let tip = document.getElementById('draft-empty-tip');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    if (myDrafts.length === 0) {
+        if(tip) tip.style.display = 'block';
+        saveSessionState(); // 触发记忆保存
+        return;
+    }
+    if(tip) tip.style.display = 'none';
+
+    // 1. 🔍 给当前卡组“把脉” (扫描标签浓度)
+    let deckSize = myDeck.length;
+    let deckTagsCount = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
+
+    myDeck.forEach(card => {
+        let info = cardDictionary[card.id];
+        if (info && info.tags) {
+            info.tags.forEach(t => {
+                if (deckTagsCount[t] !== undefined) deckTagsCount[t]++;
+            });
+        }
+    });
+
+    // 2. ⚖️ 遍历候选池进行匹配
+    myDrafts.forEach((draftCard, index) => {
+        let tr = document.createElement('tr');
+        tr.style.borderBottom = "1px dashed #e0e4d8";
+
+        // 第一列：卡牌本体
+        let tdCard = document.createElement('td');
+        tdCard.style.padding = "4px 2px";
+        tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
+        tr.appendChild(tdCard);
+
+        // 第二列：标签与梯度
+        let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
+        let tdTags = document.createElement('td');
+        tdTags.style.padding = "6px 4px";
+        let tierColor = savedInfo.tier === "S" ? "#ff9f43" : (savedInfo.tier === "A" ? "#ee5253" : (savedInfo.tier === "F" ? "#7f8c8d" : "#2980b9"));
+        let tierHtml = savedInfo.tier !== "-" && savedInfo.tier !== "" ? `<span style="color:${tierColor}; font-weight:bold;">[${savedInfo.tier}级]</span><br>` : "";
+        let tagsHtml = savedInfo.tags.length > 0 ? savedInfo.tags.join(" | ") : "<span style='color:#999'>暂无标签</span>";
+        tdTags.innerHTML = `${tierHtml}${tagsHtml}`;
+        tr.appendChild(tdTags);
+
+        // 🎯 第三列：卡组协同分析 (核心诊断逻辑)
+        let tdEval = document.createElement('td');
+        tdEval.style.padding = "6px 4px";
+
+        if (savedInfo.tags.length === 0 && savedInfo.tier === "-") {
+            tdEval.innerHTML = `<span style="color:#e74c3c;">❓ 未鉴定 (请右键打标)</span>`;
+        } else if (savedInfo.tier === "F") {
+            tdEval.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">❌ 严重污染</span><br><span style="font-size:0.8rem; color:#666;">F级废牌，尽量避开</span>`;
+        } else {
+            let score = 0;
+            let matchReasons = [];
+
+            // 计算标签互补性
+            savedInfo.tags.forEach(tag => {
+                let currentCount = deckTagsCount[tag] || 0;
+                let density = deckSize > 0 ? currentCount / deckSize : 0;
+
+                // 动态阈值判定
+                if (currentCount === 0) {
+                    score += 50;
+                    matchReasons.push(`雪中送炭(缺${tag})`);
+                } else if (density < 0.15) {
+                    score += 30;
+                    matchReasons.push(`补强缺口(${tag})`);
+                } else if (density > 0.35) {
+                    score -= 20;
+                    matchReasons.push(`严重冗余(${tag})`);
+                } else {
+                    score += 10;
+                }
+            });
+
+            // 梯度绝对权重压制 (超模卡无视部分体系冲突)
+            if (savedInfo.tier === "S") score += 40;
+            if (savedInfo.tier === "A") score += 20;
+            if (savedInfo.tier === "C") score -= 20;
+
+            // 最终评价输出
+            if (score >= 60) {
+                tdEval.innerHTML = `<span style="color:#27ae60; font-weight:bold;">✅ 完美拼图</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
+            } else if (score >= 30) {
+                tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">🔄 顺滑融入</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.length > 0 ? matchReasons.join(", ") : "平滑过渡"}</span>`;
+            } else if (score < 0) {
+                tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold;">⚠️ 体系冲突</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
+            } else {
+                tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">⚖️ 收益平庸</span><br><span style="font-size:0.8rem; color:#666;">同位替代，提升有限</span>`;
+            }
+        }
+
+        tr.appendChild(tdEval);
+
+        // 🎯 4. 新增：一键抓取列
+        let tdAction = document.createElement('td');
+        tdAction.style.textAlign = "center";
+
+        // 🎯 替换推演台的加号按钮代码
+        let addBtn = document.createElement('button');
+        // 使用纯净的 SVG 绘制加号，彻底消灭系统自带的丑陋 Emoji
+        addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        addBtn.title = "直接加入卡组";
+        addBtn.style.cssText = `
+            border: 1px solid #27ae60; background: #eafff0; color: #27ae60; 
+            border-radius: 6px; width: 30px; height: 30px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; margin: 0 auto;
+        `;
+        addBtn.onmouseover = () => { addBtn.style.background = "#27ae60"; addBtn.style.color = "white"; };
+        addBtn.onmouseout = () => { addBtn.style.background = "#eafff0"; addBtn.style.color = "#27ae60"; };
+
+        addBtn.onclick = () => {
+            // 将该牌深度拷贝一份放入主卡组
+            let cardToGrab = JSON.parse(JSON.stringify(draftCard));
+            myDeck.push(cardToGrab);
+
+            // 抓取后通常我们会把推演台的这张牌移除，或者保留，取决于你的习惯
+            // 这里建议保留，方便连续抓取多张同名牌
+            updateWorkshop();
+        };
+
+        tdAction.appendChild(addBtn);
+        tr.appendChild(tdAction);
+
+        tbody.appendChild(tr);
+    });
+
+    saveSessionState(); // 触发记忆保存
+}
+
+// ================= 卡牌图纸库渲染 =================
 function renderLibrary() {
     const listDiv = document.getElementById('card-list');
     listDiv.innerHTML = '';
@@ -242,6 +682,7 @@ function renderLibrary() {
     }
 }
 
+// ================= 全能过滤系统 =================
 function filterCards() {
     let searchText = document.getElementById('search-input').value.toLowerCase();
     let classFilter = document.getElementById('filter-class').value;
@@ -255,7 +696,19 @@ function filterCards() {
         let matchName = card.dataset.name.includes(searchText) || card.dataset.id.includes(searchText);
         let matchClass = (classFilter === 'all') || (card.dataset.cardClass === classFilter);
         let matchType = (typeFilter === 'all') || (card.dataset.type === typeFilter);
-        let matchCost = (costFilter === 'all') || (card.dataset.cost == costFilter);
+
+        let cardCost = card.dataset.cost;
+        let matchCost = false;
+
+        if (costFilter === 'all') {
+            matchCost = true;
+        } else if (costFilter === '3+') {
+            matchCost = (parseInt(cardCost) >= 3);
+        } else if (costFilter === 'X') {
+            matchCost = (cardCost === 'X' || cardCost === 'unplayable' || parseInt(cardCost) === -1);
+        } else {
+            matchCost = (cardCost == costFilter);
+        }
 
         if (matchName && matchClass && matchType && matchCost) {
             card.style.display = 'inline-block';
@@ -268,606 +721,103 @@ function filterCards() {
     document.getElementById('card-count').innerText = visibleCount;
 }
 
-function clearDeck() {
-    if (myDeck.length > 0 && confirm("确定要清空当前的全部卡牌吗？")) {
-        myDeck = [];
-        updateWorkshop();
-    }
-}
-
-function loadStarterDeck() {
-    if (myDeck.length > 0 && !confirm("一键载入将覆盖并清空你目前组建的卡组，确定继续吗？")) {
-        return;
-    }
-    const selectedClass = document.getElementById('starter-class').value;
-    const template = starterTemplates[selectedClass] || [];
-    myDeck = [];
-
-    let missingCards = [];
-    template.forEach(targetId => {
-        let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
-        let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
-        if (realKey) myDeck.push({ id: realKey, ...allCards[realKey] });
-        else missingCards.push(targetId);
-    });
-
-    let baneKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === "ascendersbane");
-    if (baneKey) myDeck.push({ id: baneKey, ...allCards[baneKey] });
-
-    updateWorkshop();
-}
-
-// ================= 主卡组与仪表盘引擎 =================
-function updateWorkshop() {
-    const deckDiv = document.getElementById('my-deck');
-    document.getElementById('deck-count').innerText = myDeck.length;
-
-    const baseEnergy = parseFloat(document.getElementById('base-energy').value) || 3;
-    const baseDraw = parseFloat(document.getElementById('base-draw').value) || 5;
-
-    let totalDeckEnergy = 0; let totalDeckDamage = 0; let totalDeckBlock = 0;
-    let drawCardCount = 0; let exhaustCardCount = 0; let poisonCount = 0;
-    let discardEnablerCount = 0; let finesseCount = 0;
-
-    let totalStr = 0; let totalDex = 0;
-    let totalVulnStacks = 0; let totalWeakStacks = 0;
-    let attackCardCount = 0; let blockCardCount = 0;
-
-    deckDiv.innerHTML = '';
-
-    if (myDeck.length === 0) {
-        deckDiv.innerHTML = '<p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 20px;">👈 点击左侧卡牌加入卡组<br><br>💡 加入后：<b>左键</b>移除，<b>右键</b>强化/降级</p>';
-        updateDashboard(0, 0, 0, baseEnergy, baseDraw, 0, 0, 0, 0, 0, 0, 0);
-        return;
-    }
-
-    myDeck.sort((a, b) => {
-        let cA = parseCardStats(a, a.isUpgraded).cost;
-        let cB = parseCardStats(b, b.isUpgraded).cost;
-        if (cA !== cB) return cA - cB;
-        return (a.Name_ZHS || a.id).localeCompare(b.Name_ZHS || b.id);
-    });
-
-    myDeck.forEach((card, index) => {
-        deckDiv.appendChild(createCardButton(card.id, card, true, index));
-
-        let stats = parseCardStats(card, card.isUpgraded);
-
-        if (card.Type === "Attack" || card.Type === "attack") attackCardCount += 1;
-        if (typeof stats.cost === 'number') totalDeckEnergy += stats.cost;
-
-        totalDeckDamage += stats.dmg;
-        totalDeckBlock += stats.blk;
-        if (stats.blk > 0) blockCardCount += 1;
-
-        let lowerDesc = stats.desc.toLowerCase();
-
-        if (card.IsDraw || lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCardCount += 1;
-        if (card.IsExhaust || card.IsEthereal || lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCardCount += 1;
-        if (card.IsPoison || lowerDesc.includes("中毒") || lowerDesc.includes("poison")) poisonCount += card.isUpgraded ? 1.5 : 1;
-
-        if (card.IsDiscardEnabler || (lowerDesc.includes("丢弃") && !lowerDesc.includes("被丢弃"))) discardEnablerCount += 1;
-        let isFakeFinesse = lowerDesc.includes("添加") && lowerDesc.includes("奇巧");
-        if ((card.IsFinesse === true || lowerDesc.includes("奇巧") || lowerDesc.includes("sly")) && !isFakeFinesse) finesseCount += 1;
-
-        // 🎯 Buff/Debuff 雷达提取及强化补偿
-        let baseStr = 0;
-        let strMatch = stats.desc.match(/(?:获得|增加|给予)\s*(\d+)\s*(?:点|层)?\s*力量/);
-        if (strMatch) baseStr = parseInt(strMatch[1]);
-        if (card.isUpgraded) {
-            if (card.UpgradeStrBy) baseStr += card.UpgradeStrBy;
-            else if (card.UpgradeStrengthBy) baseStr += card.UpgradeStrengthBy;
-        }
-        totalStr += baseStr;
-
-        let baseDex = 0;
-        let dexMatch = stats.desc.match(/(?:获得|增加|给予)\s*(\d+)\s*(?:点|层)?\s*敏捷/);
-        if (dexMatch) baseDex = parseInt(dexMatch[1]);
-        if (card.isUpgraded) {
-            if (card.UpgradeDexBy) baseDex += card.UpgradeDexBy;
-            else if (card.UpgradeDexterityBy) baseDex += card.UpgradeDexterityBy;
-        }
-        totalDex += baseDex;
-
-        let baseVuln = 0;
-        let vulnMatch = stats.desc.match(/(?:给予|施加|获得|造成)\s*(\d+)\s*(?:层)?\s*易伤/);
-        if (vulnMatch) baseVuln = parseInt(vulnMatch[1]);
-        else if (lowerDesc.includes("易伤") || lowerDesc.includes("vulnerable")) baseVuln = 1;
-        if (card.isUpgraded) {
-            if (card.UpgradeVulnBy) baseVuln += card.UpgradeVulnBy;
-            else if (card.UpgradeVulnerableBy) baseVuln += card.UpgradeVulnerableBy;
-        }
-        totalVulnStacks += baseVuln;
-
-        let baseWeak = 0;
-        let weakMatch = stats.desc.match(/(?:给予|施加|获得|造成)\s*(\d+)\s*(?:层)?\s*虚弱/);
-        if (weakMatch) baseWeak = parseInt(weakMatch[1]);
-        else if (lowerDesc.includes("虚弱") || lowerDesc.includes("weak")) baseWeak = 1;
-        if (card.isUpgraded) {
-            if (card.UpgradeWeakBy) baseWeak += card.UpgradeWeakBy;
-            else if (card.id.toLowerCase().includes("neutralize")) baseWeak += 1; // 《中和》临时硬编码修补
-        }
-        totalWeakStacks += baseWeak;
-    });
-
-    let deckSize = myDeck.length;
-    let actualDraw = Math.min(baseDraw, deckSize);
-
-    let baseEnergyEV = deckSize > 0 ? (totalDeckEnergy / deckSize) * actualDraw : 0;
-    let baseDamageEV = deckSize > 0 ? (totalDeckDamage / deckSize) * actualDraw : 0;
-    let baseBlockEV  = deckSize > 0 ? (totalDeckBlock / deckSize) * actualDraw : 0;
-
-    let avgStrTurn = deckSize > 0 ? (totalStr / deckSize) * actualDraw : 0;
-    let avgDexTurn = deckSize > 0 ? (totalDex / deckSize) * actualDraw : 0;
-
-    let expAttacksTurn = deckSize > 0 ? (attackCardCount / deckSize) * actualDraw : 0;
-    let expBlocksTurn  = deckSize > 0 ? (blockCardCount / deckSize) * actualDraw : 0;
-
-    let rawDamageEV = baseDamageEV + (avgStrTurn * expAttacksTurn);
-    let rawBlockEV  = baseBlockEV + (avgDexTurn * expBlocksTurn);
-
-    let vulnUptime = deckSize > 0 ? Math.min(1, (totalVulnStacks / deckSize) * actualDraw) : 0;
-    let weakUptime = deckSize > 0 ? Math.min(1, (totalWeakStacks / deckSize) * actualDraw) : 0;
-
-    let finalDamageEV = rawDamageEV * (1 + (0.5 * vulnUptime));
-    let finalBlockEV  = rawBlockEV;
-
-    updateDashboard(
-        baseEnergyEV, finalDamageEV, finalBlockEV, baseEnergy, actualDraw,
-        drawCardCount, exhaustCardCount, deckSize,
-        poisonCount, discardEnablerCount, finesseCount, weakUptime
-    );
-
-    updateDrafts();
-}
-
-function updateDashboard(expEnergy, expDamage, expBlock, maxEnergy, actualDraw,
-                         drawCount, exhaustCount, deckSize,
-                         poisonCount, discardEnablerCount, finesseCount, weakUptime) {
-
-    expEnergy = parseFloat(expEnergy).toFixed(1);
-    expDamage = parseFloat(expDamage);
-    expBlock = parseFloat(expBlock).toFixed(1);
-
-    let energyFill = document.getElementById('energy-fill');
-    let energyDesc = document.getElementById('energy-desc');
-    let energyPercent = Math.min((expEnergy / maxEnergy) * 100, 100);
-
-    energyFill.style.width = energyPercent + '%';
-    document.getElementById('energy-text').innerText = `${expEnergy} / ${maxEnergy} 费`;
-
-    if (expEnergy > maxEnergy) {
-        energyFill.style.backgroundColor = '#e74c3c';
-        energyDesc.innerText = "🚨 严重卡手：能量超载。";
-        energyDesc.style.color = '#c0392b';
-    } else if (expEnergy > maxEnergy * 0.8) {
-        energyFill.style.backgroundColor = '#f39c12';
-        energyDesc.innerText = "⚠️ 负载较高：能量刚好够用。";
-        energyDesc.style.color = '#d35400';
-    } else {
-        energyFill.style.backgroundColor = '#16a085';
-        energyDesc.innerText = "✅ 运转流畅：适合加高费牌。";
-        energyDesc.style.color = '#666666';
-    }
-
-    const floorInput = document.getElementById('current-floor');
-    if (floorInput) {
-        if (Number(floorInput.value) > 48) floorInput.value = 48;
-        if (Number(floorInput.value) < 0) floorInput.value = 0;
-    }
-    let currentFloor = floorInput ? Number(floorInput.value) : 0;
-
-    const bossSelect = document.getElementById('target-enemy');
-    const selectedOption = bossSelect.options[bossSelect.selectedIndex];
-
-    let damageTarget = parseFloat(selectedOption.dataset.dmg) || 30;
-    let baseBlockTarget = parseFloat(selectedOption.dataset.blk) || 20;
-    let act = parseInt(selectedOption.dataset.act) || 1;
-
-    weakUptime = weakUptime || 0;
-    let mitigatedBlock = baseBlockTarget * (0.25 * weakUptime);
-    let blockTarget = baseBlockTarget - mitigatedBlock;
-
-    let targetFloor = 17;
-    if (act === 2) targetFloor = 33;
-    if (act === 3) targetFloor = 48;
-
-    let pacingRatio = Math.min(currentFloor / targetFloor, 1);
-
-    let currentDmgReq = damageTarget * pacingRatio;
-    let currentBlkReq = blockTarget * pacingRatio;
-    let markerPct = pacingRatio * 100;
-
-    let dmgMarker = document.getElementById('dmg-marker');
-    let blkMarker = document.getElementById('blk-marker');
-    if(dmgMarker) dmgMarker.style.left = markerPct + '%';
-    if(blkMarker) blkMarker.style.left = markerPct + '%';
-
-    let poisonTotalDmgPerDraw = 15;
-    let expectedPoisonDmgPerTurn = deckSize > 0 ? ((poisonCount / deckSize) * actualDraw * poisonTotalDmgPerDraw) / 7 : 0;
-
-    let physPct = (expDamage / damageTarget) * 100;
-    let poisonPct = (expectedPoisonDmgPerTurn / damageTarget) * 100;
-
-    let displayPoisonDmg = Math.min(100, poisonPct);
-    let displayPhysDmg = Math.min(physPct, 100 - displayPoisonDmg);
-
-    let physFill = document.getElementById('damage-fill');
-    let poisonFill = document.getElementById('poison-dmg-fill');
-
-    if (physFill) physFill.style.width = displayPhysDmg + '%';
-    if (poisonFill) poisonFill.style.width = displayPoisonDmg + '%';
-
-    let totalDmg = expDamage + expectedPoisonDmgPerTurn;
-    document.getElementById('damage-text').innerText = `${totalDmg.toFixed(1)} / 极值:${damageTarget} (当前及格: ${currentDmgReq.toFixed(1)})`;
-
-    document.getElementById('block-fill').style.width = Math.min((expBlock / blockTarget) * 100, 100) + '%';
-
-    let weakText = mitigatedBlock > 0.1 ? ` (<span style="color:#27ae60;font-weight:bold;">虚弱减伤: -${mitigatedBlock.toFixed(1)}</span>)` : "";
-    document.getElementById('block-text').innerHTML = `${expBlock} / 极值:${blockTarget.toFixed(1)}${weakText} (当前及格: ${currentBlkReq.toFixed(1)})`;
-
-    let drawRatio = deckSize > 0 ? (drawCount / deckSize) * 100 : 0;
-    let exhaustRatio = deckSize > 0 ? (exhaustCount / deckSize) * 100 : 0;
-
-    let displayDraw = Math.min(drawRatio, 100);
-    let displayExhaust = Math.min(exhaustRatio, 100 - displayDraw);
-
-    let drawFill = document.getElementById('draw-fill');
-    let exhaustFill = document.getElementById('exhaust-fill');
-    let engineText = document.getElementById('engine-text');
-
-    if (drawFill && exhaustFill && engineText) {
-        drawFill.style.width = displayDraw + '%';
-        exhaustFill.style.width = displayExhaust + '%';
-        engineText.innerText = `${drawRatio.toFixed(0)}% 过牌 | ${exhaustRatio.toFixed(0)}% 压缩`;
-    }
-
-    const tacticsRadar = document.getElementById('tactics-radar');
-    if (tacticsRadar) {
-        if (discardEnablerCount > 0 || finesseCount > 0) {
-            tacticsRadar.style.display = 'block';
-            let discardDesc = document.getElementById('discard-desc');
-            let discardText = document.getElementById('discard-text');
-            let enablerFill = document.getElementById('enabler-fill');
-            let finesseFill = document.getElementById('finesse-fill');
-
-            let totalDiscardCards = discardEnablerCount + finesseCount;
-            let enablerPct = (discardEnablerCount / totalDiscardCards) * 100;
-            let finessePct = (finesseCount / totalDiscardCards) * 100;
-
-            if (enablerFill && finesseFill) {
-                enablerFill.style.width = enablerPct + '%';
-                finesseFill.style.width = finessePct + '%';
-
-                enablerFill.innerText = enablerPct > 20 ? `${discardEnablerCount} 张丢弃源` : '';
-                finesseFill.innerText = finessePct > 20 ? `${finesseCount} 张奇巧` : '';
-            }
-
-            if (finesseCount > 0 && discardEnablerCount === 0) {
-                discardText.innerText = "❌ 严重卡死"; discardText.style.color = "#c0392b";
-                discardDesc.innerText = `你有 ${finesseCount} 张奇巧牌，但没有主动丢弃手段！这些牌将严重拖累节奏。`;
-            } else if (finesseCount > discardEnablerCount) {
-                discardText.innerText = "⚠️ 供不应求"; discardText.style.color = "#d35400";
-                discardDesc.innerText = `丢弃源不足！${discardEnablerCount} 张丢弃牌带不动 ${finesseCount} 张奇巧。`;
-            } else if (discardEnablerCount > 0 && finesseCount > 0) {
-                discardText.innerText = "✅ 完美咬合"; discardText.style.color = "#16a085";
-                discardDesc.innerText = `供需平衡。奇巧牌可以完美白嫖触发，极大提高卡组上限！`;
-            } else if (discardEnablerCount > 0 && finesseCount === 0) {
-                discardText.innerText = "🔄 纯过牌调整"; discardText.style.color = "#666666";
-                discardDesc.innerText = `有丢弃手段，但无奇巧牌。可用于过滤状态牌或诅咒。`;
-            }
-        } else {
-            tacticsRadar.style.display = 'none';
-        }
-    }
-}
-
-// ================= 🎯 替换：完整修复毒伤计算的推演引擎 =================
-function updateDrafts() {
-    let tbody = document.getElementById('draft-tbody');
-    let tip = document.getElementById('draft-empty-tip');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-    if (myDrafts.length === 0) {
-        if(tip) tip.style.display = 'block';
-        return;
-    }
-    if(tip) tip.style.display = 'none';
-
-    // 1. 扫描当前卡组基础状态 (加入毒伤统计)
-    let currentDmg = 0; let currentBlk = 0; let currentDrawCount = 0;
-    let currentPoisonCount = 0; // 🎯 新增：原卡组毒伤池
-
-    myDeck.forEach(card => {
-        let stats = parseCardStats(card, card.isUpgraded);
-        currentDmg += stats.dmg;
-        currentBlk += stats.blk;
-        let lowerDesc = stats.desc.toLowerCase();
-
-        if (card.IsDraw || lowerDesc.includes("抽") || lowerDesc.includes("draw")) currentDrawCount += 1;
-        // 🎯 捕获原卡组毒药
-        if (card.IsPoison || lowerDesc.includes("中毒") || lowerDesc.includes("poison")) {
-            currentPoisonCount += card.isUpgraded ? 1.5 : 1;
-        }
-    });
-
-    let size = myDeck.length;
-    const baseDraw = parseFloat(document.getElementById('base-draw').value) || 5;
-    let expectedDraw = baseDraw + currentDrawCount;
-
-    // 基础期望演算 (物理 + 毒伤)
-    let basePhysDmgEV = size > 0 ? (currentDmg / size) * expectedDraw : 0;
-    let poisonTotalDmgPerDraw = 15; // 毒伤转化率常数
-    let basePoisonDmgEV = size > 0 ? ((currentPoisonCount / size) * expectedDraw * poisonTotalDmgPerDraw) / 7 : 0;
-
-    let totalBaseDmgEV = basePhysDmgEV + basePoisonDmgEV; // 🎯 综合基础输出
-    let baseBlkEV = size > 0 ? (currentBlk / size) * expectedDraw : 0;
-
-    // 2. 遍历推演池
-    myDrafts.forEach((draftCard, index) => {
-        let stats = parseCardStats(draftCard, draftCard.isUpgraded);
-        let cardDraw = 0;
-        let draftPoison = 0; // 🎯 候选卡的毒伤
-        let lowerDesc = stats.desc.toLowerCase();
-
-        let currentDraw = stats.cardDraw;
-        if (currentDraw === 0 && (lowerDesc.includes("抽") || lowerDesc.includes("draw"))) {
-            let match = lowerDesc.match(/抽\s*(\d+)\s*张/);
-            currentDraw = match ? parseInt(match[1]) : 1;
-        }
-
-        // 🎯 捕获候选卡毒药
-        if (draftCard.IsPoison || lowerDesc.includes("中毒") || lowerDesc.includes("poison")) {
-            draftPoison = draftCard.isUpgraded ? 1.5 : 1;
-        }
-
-        let isExhaust = draftCard.IsExhaust || lowerDesc.includes("消耗") || lowerDesc.includes("exhaust");
-        let isEthereal = draftCard.IsEthereal || lowerDesc.includes("虚无") || lowerDesc.includes("ethereal");
-
-        let bloatFactor = (isExhaust || isEthereal) ? 0.5 : 1.0;
-        let newSize = size + bloatFactor;
-
-        let newExpectedDraw = expectedDraw + cardDraw;
-
-        // 🎯 计算加入新卡后的综合输出期望 (物理新期望 + 毒伤新期望)
-        let newPhysDmgEV = ((currentDmg + stats.dmg) / newSize) * newExpectedDraw;
-        let newPoisonDmgEV = ((currentPoisonCount + draftPoison) / newSize) * newExpectedDraw * poisonTotalDmgPerDraw / 7;
-        let totalNewDmgEV = newPhysDmgEV + newPoisonDmgEV;
-
-        let newBlkEV = ((currentBlk + stats.blk) / newSize) * newExpectedDraw;
-
-        // 🎯 对比差值
-        let deltaDmg = size > 0 ? totalNewDmgEV - totalBaseDmgEV : totalNewDmgEV;
-        let deltaBlk = size > 0 ? newBlkEV - baseBlkEV : newBlkEV;
-
-        let evalText = ""; let evalColor = "#666";
-        if (deltaDmg < 0 && deltaBlk < 0) { evalText = "❌ 严重稀释"; evalColor = "#c0392b"; }
-        else if (deltaDmg > 0 && deltaBlk > 0) { evalText = "✅ 全面拉升"; evalColor = "#16a085"; }
-        else if (cardDraw > 0) { evalText = "🔄 平滑过渡"; evalColor = "#2980b9"; }
-        else if (deltaDmg > 0) { evalText = "🗡️ 偏向输出"; evalColor = "#d35400"; }
-        else if (deltaBlk > 0) { evalText = "🛡️ 偏向防守"; evalColor = "#27ae60"; }
-        else { evalText = "⚖️ 收益平庸"; }
-
-        let formatDelta = (val) => {
-            if (val > 0.05) return `<span style="color: #16a085; font-weight: bold;">+${val.toFixed(1)}</span>`;
-            if (val < -0.05) return `<span style="color: #e74c3c; font-weight: bold;">${val.toFixed(1)}</span>`;
-            return `<span style="color: #7f8c8d;">0.0</span>`;
-        };
-
-        let tr = document.createElement('tr');
-        tr.style.borderBottom = "1px dashed #e0e4d8";
-
-        let tdCard = document.createElement('td');
-        tdCard.style.padding = "4px 2px";
-        tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
-        tr.appendChild(tdCard);
-
-        let tdDmg = document.createElement('td');
-        tdDmg.style.padding = "6px 4px";
-        tdDmg.innerHTML = `${totalNewDmgEV.toFixed(1)} <br>${formatDelta(deltaDmg)}`;
-        tr.appendChild(tdDmg);
-
-        let tdBlk = document.createElement('td');
-        tdBlk.style.padding = "6px 4px";
-        tdBlk.innerHTML = `${newBlkEV.toFixed(1)} <br>${formatDelta(deltaBlk)}`;
-        tr.appendChild(tdBlk);
-
-        let tdEval = document.createElement('td');
-        tdEval.style.padding = "6px 4px";
-        tdEval.style.color = evalColor;
-        tdEval.style.fontWeight = "bold";
-        tdEval.innerText = evalText;
-        tr.appendChild(tdEval);
-
-        tbody.appendChild(tr);
-    });
-}
-// ========================================================================
-
-// ================= 💾 本地存档引擎 (Local Storage) =================
-function saveDeckToLocal() {
-    if (myDeck.length === 0) {
-        alert("⚠️ 当前卡组是空的，不需要保存！");
-        return;
-    }
-
-    const slot = document.getElementById('save-slot').value;
-
-    // 技巧：我们不保存庞大的完整卡牌数据，只保存“代号(id)”和“是否强化(isUpgraded)”，极大地节约性能
-    const deckToSave = myDeck.map(card => ({
-        id: card.id,
-        isUpgraded: card.isUpgraded
-    }));
-
-    // 写入浏览器缓存
-    localStorage.setItem(`SpirePort_${slot}`, JSON.stringify(deckToSave));
-
-    // 顺手把你调好的面板设置也存下来
-    localStorage.setItem(`SpirePort_${slot}_settings`, JSON.stringify({
-        floor: document.getElementById('current-floor') ? document.getElementById('current-floor').value : 0,
-        energy: document.getElementById('base-energy') ? document.getElementById('base-energy').value : 3,
-        draw: document.getElementById('base-draw') ? document.getElementById('base-draw').value : 5
-    }));
-
-    alert(`✅ 战术方案已成功存入【${slot}】！\n现在即使刷新网页或关闭浏览器，你的卡组也不会丢失了。`);
-}
-
-function loadDeckFromLocal() {
-    const slot = document.getElementById('save-slot').value;
-    const savedData = localStorage.getItem(`SpirePort_${slot}`);
-
-    if (!savedData) {
-        alert(`⚠️ 空空如也！\n【${slot}】中没有找到任何存档记录。`);
-        return;
-    }
-
+// ================= 全局系统启动 =================
+async function loadCards() {
     try {
-        const parsedDeck = JSON.parse(savedData);
-        myDeck = [];
-        let missingCount = 0;
+        const response = await fetch('STS2_Card_Database_ZHS.json');
+        allCards = await response.json();
 
-        // 根据保存的 ID，去最新的图纸库里把真卡“捞”出来
-        parsedDeck.forEach(savedCard => {
-            if (allCards[savedCard.id]) {
-                let newCard = JSON.parse(JSON.stringify(allCards[savedCard.id]));
-                newCard.id = savedCard.id;
-                newCard.isUpgraded = savedCard.isUpgraded;
-                myDeck.push(newCard);
-            } else {
-                missingCount++; // 如果图纸库更新导致这牌没了，就记录下来
-            }
-        });
+        renderSaveSlots();
+        renderLibrary();
+        filterCards();
 
-        // 恢复之前存的能量、抽牌、层数设置
-        const savedSettings = localStorage.getItem(`SpirePort_${slot}_settings`);
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            if(document.getElementById('current-floor')) document.getElementById('current-floor').value = settings.floor || 0;
-            if(document.getElementById('base-energy')) document.getElementById('base-energy').value = settings.energy || 3;
-            if(document.getElementById('base-draw')) document.getElementById('base-draw').value = settings.draw || 5;
-        }
+        // 🎯 引擎启动时，直接唤醒“断点记忆”！
+        restoreSessionState();
 
-        // 驱动引擎全面重算
-        updateWorkshop();
-
-        if (missingCount > 0) {
-            alert(`✅ 读取成功！\n\n但有 ${missingCount} 张卡牌在最新的数据库中找不到了（可能是你更新了 JSON 文件导致 ID 变动）。`);
-        } else {
-            console.log(`已成功读取 ${slot} 存档`);
-        }
-
-    } catch (e) {
-        alert("❌ 存档数据读取失败，可能是数据损坏。");
-        console.error(e);
+    } catch (error) {
+        console.error("加载失败:", error);
+        document.getElementById('card-list').innerHTML = "图纸读取失败！";
     }
 }
-// ==================================================================
 
-// ================= 新增：全局拖拽捕获引擎 =================
 window.dropToDraft = function(e) {
     e.preventDefault();
     let cardId = e.dataTransfer.getData('cardId');
     let isUpg = e.dataTransfer.getData('isUpgraded') === 'true';
-
     if (cardId && allCards[cardId]) {
-        let newCard = JSON.parse(JSON.stringify(allCards[cardId]));
-        newCard.id = cardId;
-        newCard.isUpgraded = isUpg;
-        myDrafts.push(newCard);
+        myDrafts.push({ ...allCards[cardId], id: cardId, isUpgraded: isUpg });
         updateDrafts();
     }
 };
 
-// ================= V2.0 动态打标核心逻辑 =================
-// 我们预设的五大核心端口
-const AVAILABLE_TAGS = ["过渡输出", "过渡防御", "终端输出", "终端防御", "润滑运转"];
-const AVAILABLE_TIERS = ["S", "A", "B", "C", "F"];
-
-// 从本地浏览器加载你的《尖塔大辞典》
-let cardDictionary = JSON.parse(localStorage.getItem('SpireV2_Dictionary')) || {};
-let currentInspectingCardId = null; // 记录当前正在鉴定哪张卡
-
-// 1. 打开鉴定面板
-function openInspector(cardId, cardNameZHS) {
-    currentInspectingCardId = cardId;
-    document.getElementById('inspector-card-name').innerText = cardNameZHS;
-
-    // 获取这张卡之前的记录，如果没有则为空
-    let cardData = cardDictionary[cardId] || { tier: "", tags: [] };
-
-    // 渲染梯度按钮
-    const tierContainer = document.getElementById('tier-container');
-    tierContainer.innerHTML = '';
-    AVAILABLE_TIERS.forEach(t => {
-        let btn = document.createElement('button');
-        btn.className = `tier-btn tier-${t} ${cardData.tier === t ? 'active' : ''}`;
-        btn.innerText = t;
-        btn.onclick = () => selectTier(t);
-        tierContainer.appendChild(btn);
-    });
-
-    // 渲染标签按钮
-    const tagContainer = document.getElementById('tag-container');
-    tagContainer.innerHTML = '';
-    AVAILABLE_TAGS.forEach(tag => {
-        let btn = document.createElement('button');
-        btn.className = `tag-btn ${cardData.tags.includes(tag) ? 'active' : ''}`;
-        btn.innerText = tag;
-        btn.onclick = (e) => toggleTag(e.target, tag);
-        tagContainer.appendChild(btn);
-    });
-
-    document.getElementById('inspector-modal').style.display = 'flex';
+// ================= 🎯 V2.0 超几何概率数学引擎 =================
+// 组合数计算 C(n, k)
+function combination(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    k = Math.min(k, n - k);
+    let c = 1;
+    for (let i = 0; i < k; i++) {
+        c = c * (n - i) / (i + 1);
+    }
+    return c;
 }
 
-function closeInspector() {
-    document.getElementById('inspector-modal').style.display = 'none';
+// 超几何分布：在 N 张牌中，有 K 张关键牌，抽 n 张，至少抽到 1 张的概率
+function hypergeometricProb(N, K, n) {
+    if (N === 0) return 0;
+    if (n >= N) return 1.0; // 抽穿牌库，概率100%
+    if (K === 0) return 0.0;
+    if (N - K < n) return 1.0; // 废牌不够抽，必然抽到关键牌
+
+    // 算出“一张都抽不到”的概率，然后 1 减去它
+    let probNoDraw = combination(N - K, n) / combination(N, n);
+    return 1.0 - probNoDraw;
 }
 
-// 2. 交互处理：单选梯度，多选标签 (限制3个)
-function selectTier(selectedTier) {
-    document.querySelectorAll('.tier-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+// ================= 💾 V2.0 全局断点记忆系统 =================
+function saveSessionState() {
+    let state = {
+        currentClass: getCurrentClass(),
+        currentSlot: document.getElementById('save-slot')?.value,
+        drafts: myDrafts.map(c => ({ id: c.id, isUpgraded: c.isUpgraded }))
+    };
+    // 写入浏览器的“退出前最后状态”缓存
+    localStorage.setItem('SpireV2_SessionState', JSON.stringify(state));
 }
 
-function toggleTag(btnElement, tag) {
-    if (btnElement.classList.contains('active')) {
-        btnElement.classList.remove('active'); // 取消选中
-    } else {
-        let activeCount = document.querySelectorAll('.tag-btn.active').length;
-        if (activeCount >= 3) {
-            alert("一张卡牌最多只能拥有 3 个核心端口定位！");
-            return;
+function restoreSessionState() {
+    let savedSession = localStorage.getItem('SpireV2_SessionState');
+    if (savedSession) {
+        let state = JSON.parse(savedSession);
+
+        // 1. 恢复最后选择的职业
+        let classSelect = document.getElementById('current-class');
+        if (classSelect && state.currentClass) classSelect.value = state.currentClass;
+        renderSaveSlots();
+
+        // 2. 恢复最后选择的槽位
+        let slotSelect = document.getElementById('save-slot');
+        if (slotSelect && state.currentSlot) slotSelect.value = state.currentSlot;
+
+        // 3. 读取该槽位的卡组
+        loadDeckFromLocal();
+
+        // 4. 原样恢复推演台里的待选卡牌
+        myDrafts = [];
+        if (state.drafts) {
+            state.drafts.forEach(sc => {
+                if (allCards[sc.id]) {
+                    myDrafts.push({ ...allCards[sc.id], id: sc.id, isUpgraded: sc.isUpgraded });
+                }
+            });
         }
-        btnElement.classList.add('active'); // 选中
+        updateDrafts();
+    } else {
+        // 如果是第一次使用，走默认的初始化流程
+        switchClassWorkspace();
     }
 }
 
-// 3. 保存鉴定结果到本地
-function saveInspectorData() {
-    let selectedTier = "";
-    let activeTierBtn = document.querySelector('.tier-btn.active');
-    if (activeTierBtn) selectedTier = activeTierBtn.innerText;
-
-    let selectedTags = [];
-    document.querySelectorAll('.tag-btn.active').forEach(btn => {
-        selectedTags.push(btn.innerText);
-    });
-
-    // 存入内存字典
-    cardDictionary[currentInspectingCardId] = {
-        tier: selectedTier,
-        tags: selectedTags
-    };
-
-    // 写入浏览器物理缓存
-    localStorage.setItem('SpireV2_Dictionary', JSON.stringify(cardDictionary));
-
-    closeInspector();
-
-    // 刷新一下页面显示（这里调用你的卡牌库刷新函数）
-    renderLibrary();
-}
-
+// 启动引擎
 loadCards();

@@ -2,253 +2,167 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>SpirePort - 杀戮尖塔2 卡组构筑</title>
+    <title>NeowsBigForge - 杀戮尖塔2 定性构筑沙盘</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="library-panel" class="panel">
-    <h2>📦 卡牌总览 (当前显示: <span id="card-count" class="stat-badge">0</span>)</h2>
+    <h2>📦 卡牌图纸库 (显示: <span id="card-count" class="stat-badge">0</span>)</h2>
 
     <div style="background: #ffffff; border: 1px solid #e0e4d8; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);"
          ondragover="event.preventDefault()"
          ondrop="dropToDraft(event)">
 
         <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; border-bottom: 1px dashed #e0e4d8; padding-bottom: 8px; display: flex; justify-content: space-between;">
-            <span>⚖️ 抓牌推演台 (边际效用 Δ EV)</span>
-            <span style="font-size: 0.8rem; color: #e74c3c; font-weight: bold;">💡 把卡牌拖拽到此处进行测算</span>
+            <span>⚖️ 抓牌推演台 (端口匹配分析)</span>
+            <span style="font-size: 0.8rem; color: #2980b9; font-weight: bold;">💡 右键库中卡牌进行【鉴定打标】</span>
         </h3>
 
         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;" id="draft-table">
             <thead>
             <tr style="border-bottom: 2px solid #eef0eb; color: #666;">
                 <th style="padding: 6px 4px; width: 35%;">候选卡牌</th>
-                <th style="padding: 6px 4px; width: 22%;">输出 (Δ)</th>
-                <th style="padding: 6px 4px; width: 22%;">格挡 (Δ)</th>
-                <th style="padding: 6px 4px; width: 21%;">诊断判定</th>
+                <th style="padding: 6px 4px; width: 35%;">卡牌定位 (标签/梯度)</th>
+                <th style="padding: 6px 4px; width: 30%;">卡组协同分析</th>
+                <th style="padding: 6px 4px; width: 10%;">操作</th> </tr>
             </tr>
             </thead>
-            <tbody id="draft-tbody">
-            </tbody>
+            <tbody id="draft-tbody"></tbody>
         </table>
 
         <div id="draft-empty-tip" style="text-align: center; color: #aaa; padding: 20px 0; font-size: 0.85rem;">
-            在上方卡牌库【右键】卡牌，将其加入推演
+            按住卡牌拖拽至此处，进行定性匹配推演
         </div>
     </div>
 
     <div class="filter-bar">
-        <input type="text" id="search-input" placeholder="🔍 搜索中文或英文代号..." oninput="filterCards()">
-
+        <input type="text" id="search-input" placeholder="🔍 搜索卡牌..." oninput="filterCards()">
         <select id="filter-class" onchange="filterCards()">
             <option value="all">所有职业</option>
-            <option value="ironclad">铁甲战士 (Ironclad)</option>
-            <option value="silent">静默猎手 (Silent)</option>
-            <option value="defect">故障机器人 (Defect)</option>
-            <option value="necrobinder">亡灵契约师 (Necrobinder)</option>
-            <option value="regent">储君 (Regent)</option>
-            <option value="colorless">无色 (Colorless)</option>
-            <option value="curse">诅咒 (Curse)</option>
-            <option value="status">状态 (Status)</option>
+            <option value="ironclad">铁甲战士</option>
+            <option value="silent">静默猎手</option>
+            <option value="defect">故障机器人</option>
+            <option value="necrobinder">亡灵契约师</option>
+            <option value="regent">储君</option>
+            <option value="colorless">无色</option>
         </select>
-
         <select id="filter-type" onchange="filterCards()">
             <option value="all">所有类型</option>
             <option value="attack">攻击</option>
             <option value="skill">技能</option>
             <option value="power">能力</option>
+            <option value="curse">诅咒</option>
+            <option value="status">状态</option>
         </select>
-
         <select id="filter-cost" onchange="filterCards()">
             <option value="all">所有费用</option>
             <option value="0">0 费</option>
             <option value="1">1 费</option>
             <option value="2">2 费</option>
-            <option value="3">3 费</option>
-            <option value="unplayable">X / 无法打出</option>
+            <option value="3+">3+ 费</option>
+            <option value="X">X 费 (含无法打出)</option>
         </select>
     </div>
-
-    <div id="card-list" style="flex: 1; overflow-y: auto; align-content: flex-start;">加载中...</div>
+    <div id="card-list" style="flex: 1; overflow-y: auto; align-content: flex-start;"></div>
 </div>
 
 <div id="deck-panel" class="panel">
-    <h2>🛠️ 我的卡组 (总张数: <span id="deck-count" class="stat-badge">0</span>)</h2>
-
+    <h2>🛠️ 我的卡组 (<span id="deck-count">0</span>)</h2>
     <div class="controls">
-        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-            <label>👤 开局模板:
-                <select id="starter-class">
-                    <option value="ironclad">铁甲战士 (Ironclad)</option>
-                    <option value="silent">静默猎手 (Silent)</option>
-                    <option value="defect">故障机器人 (Defect)</option>
-                    <option value="necrobinder">亡灵契约师 (Necrobinder)</option>
-                    <option value="regent">储君 (Regent)</option>
-                </select>
-            </label>
-            <button class="action-btn" onclick="loadStarterDeck()">📥 一键载入初始卡组</button>
-            <button class="action-btn danger" style="margin-left: auto;" onclick="clearDeck()">🗑️ 清空卡组</button>
-        </div>
-
-        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; background: #eef0eb; padding: 10px 15px; border-radius: 8px; border: 1px solid #dcdde1;">
-            <label style="font-weight: bold; color: #2c3e50;">💾 战术存档槽:</label>
-            <select id="save-slot" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit;">
-                <option value="slot1">存档 1 (主玩构筑)</option>
-                <option value="slot2">存档 2 (测试构筑A)</option>
-                <option value="slot3">存档 3 (测试构筑B)</option>
+        <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+            <label style="font-weight: bold; color: #2c3e50;">👤 当前职业:</label>
+            <select id="current-class" onchange="switchClassWorkspace()" style="padding: 4px; border-radius: 4px; border: 2px solid #3498db; font-weight: bold; color: #2980b9;">
+                <option value="ironclad">铁甲战士</option>
+                <option value="silent">静默猎手</option>
+                <option value="defect">故障机器人</option>
+                <option value="necrobinder">亡灵契约师</option>
+                <option value="regent">储君</option>
             </select>
-            <button class="action-btn" onclick="saveDeckToLocal()" style="background-color: #27ae60;">写入保存</button>
-            <button class="action-btn" onclick="loadDeckFromLocal()" style="background-color: #8e44ad;">读取覆盖</button>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <label style="font-size: 0.9rem; color: #555; font-weight: bold;">
+                    🔄 排序:
+                    <select id="deck-sort-select" onchange="updateWorkshop()" style="padding: 2px 4px; border-radius: 4px; border: 1px solid #ccc; color: #2980b9;">
+                        <option value="acquire">获得顺序 (默认)</option>
+                        <option value="cost">按费用</option>
+                        <option value="type">按类型</option>
+                    </select>
+                </label>
+                <button class="action-btn danger" onclick="clearDeck()">🗑️ 清空当前卡组</button>
+            </div>
         </div>
 
-        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; background: #f8f9f6; padding: 10px 15px; border-radius: 8px; border: 1px solid #e0e4d8;">
-            <label>🎯 关底 Boss:
-                <select id="target-enemy" onchange="updateWorkshop()" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit;">
-                    <optgroup label="第一层 (第17层 Boss)">
-                        <option value="act1_beast" data-act="1" data-dmg="28" data-blk="20">仪式兽 (爆发输出/控血)</option>
-                        <option value="act1_vantom" data-act="1" data-dmg="22" data-blk="30" selected>墨影幻灵 (防30重击/破滑溜)</option>
-                        <option value="act1_giant" data-act="1" data-dmg="25" data-blk="25">瀑布巨兽 (防23重击)</option>
-                        <option value="act1_lagavulin" data-act="1" data-dmg="25" data-blk="21">乐加维林族母 (需铺场启动)</option>
-                    </optgroup>
-                    <optgroup label="第二层 (第33层 Boss)">
-                        <option value="act2_demon" data-act="2" data-dmg="45" data-blk="30">知识恶魔 (DPS检测/防debuff)</option>
-                        <option value="act2_crab" data-act="2" data-dmg="50" data-blk="25">帝皇蟹 (双目标/防背后加伤)</option>
-                        <option value="act2_worm" data-act="2" data-dmg="60" data-blk="31">无厌沙虫 (极限DPS竞速)</option>
-                    </optgroup>
-                    <optgroup label="第三层 (第48层 Boss)">
-                        <option value="act3_queen" data-act="3" data-dmg="80" data-blk="40">女王 (高血量/清火炬头)</option>
-                        <option value="act3_test" data-act="3" data-dmg="85" data-blk="45">实验体 (多阶段/防45重击)</option>
-                        <option value="act3_door" data-act="3" data-dmg="90" data-blk="35">门扉缔造者 (速杀门/打断)</option>
-                    </optgroup>
-                </select>
-            </label>
-
-            <label style="display: flex; align-items: center; gap: 8px; border-left: 2px solid #ddd; padding-left: 15px;">
-                📍 当前层数: 第
-                <input type="number" id="current-floor" min="0" max="48" value="0" oninput="updateWorkshop()" style="width: 50px; text-align: center; font-size: 1rem; padding: 4px; border: 1px solid #ccc; border-radius: 6px; color: #16a085; font-weight: bold; outline: none; transition: 0.2s;">
-                层 (满层48)
-            </label>
+        <div style="margin-bottom: 10px; display: flex; gap: 5px; background: #eef0eb; padding: 8px; border-radius: 6px; align-items: center;">
+            <select id="save-slot" onchange="loadDeckFromLocal()" style="flex: 1; padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></select>
+            <button class="action-btn" onclick="renameCurrentSlot()" style="background: #3498db;">✏️ 改名</button>
+            <button class="action-btn" onclick="saveDeckToLocal()" style="background: #27ae60;">💾 手动保存</button>
         </div>
-
-        <hr style="border-top: 1px solid #444; border-bottom: none; margin: 10px 0;">
 
         <div style="display: flex; gap: 15px;">
-            <label>⚡ 初始能量: <input type="number" id="base-energy" value="3" min="1" onchange="updateWorkshop()"></label>
-            <label>🃏 回合抽牌: <input type="number" id="base-draw" value="5" min="1" onchange="updateWorkshop()"></label>
+            <label>⚡ 能量: <input type="number" id="base-energy" value="3" min="1" onchange="updateWorkshop()"></label>
+            <label>🃏 抽牌: <input type="number" id="base-draw" value="5" min="1" onchange="updateWorkshop()"></label>
         </div>
     </div>
-
-    <div id="my-deck" style="flex: 1; overflow-y: auto; align-content: flex-start;">
-        <p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 20px;">点击左侧卡牌加入卡组</p>
-    </div>
+    <div id="my-deck" style="flex: 1; overflow-y: auto;"></div>
 </div>
 
 <div id="port-panel" class="panel">
-    <h2>📊 回合期望仪表盘 (EV)</h2>
-    <p style="font-size: 0.9rem; color: #666; margin-top: 0; margin-bottom: 20px;">基于当前【能量/抽牌】计算的单回合平均预期表现。</p>
+    <h2>📈 定性分析与概率仪表盘</h2>
 
     <div class="port-item">
-        <div class="port-label">
-            <span>⚡ 回合能量需求 (卡手预警)</span>
-            <span id="energy-text">0 / 3 费</span>
-        </div>
-        <div class="port-bar">
-            <div id="energy-fill" class="port-fill" style="background-color: #f39c12;"></div>
-        </div>
-        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;" id="energy-desc">卡组整体耗费极低，运转流畅。</div>
-    </div>
-
-    <div class="port-item">
-        <div class="port-label">
-            <span>🗡️ 回合输出期望 (物理 + <span style="color: #27ae60;">毒伤</span>)</span>
-            <span id="damage-text">0 点</span>
-        </div>
-        <div class="port-bar" style="background-color: #e2e5de; display: flex;">
-            <div id="damage-fill" class="port-fill" style="background-color: #e74c3c; width: 0%;"></div>
-            <div id="poison-dmg-fill" class="port-fill" style="background-color: #27ae60; width: 0%; opacity: 0.9;"></div>
-        </div>
-        <div class="marker-track">
-            <div id="dmg-marker" class="target-marker" style="left: 0%;">
-                <div class="marker-arrow">▲</div>
-                <div class="marker-text">及格线</div>
-            </div>
-        </div>
+        <div class="port-label"><span>⚡ 平均能量负载</span><span id="energy-text">0 / 3</span></div>
+        <div class="port-bar"><div id="energy-fill" class="port-fill"></div></div>
     </div>
 
     <div class="port-item" style="margin-top: 15px;">
-        <div class="port-label">
-            <span>🛡️ 回合基础格挡期望</span>
-            <span id="block-text">0 点</span>
-        </div>
-        <div class="port-bar" style="background-color: #e2e5de;">
-            <div id="block-fill" class="port-fill" style="background-color: #16a085; width: 0%;"></div>
-        </div>
-        <div class="marker-track">
-            <div id="blk-marker" class="target-marker" style="left: 0%;">
-                <div class="marker-arrow">▲</div>
-                <div class="marker-text">及格线</div>
-            </div>
+        <div class="port-label"><span>⚙️ 卡组润滑度 (过牌与压缩)</span><span id="engine-text">0% | 0%</span></div>
+        <div class="port-bar" style="display: flex;">
+            <div id="draw-fill" class="port-fill" style="background: #3498db;"></div>
+            <div id="exhaust-fill" class="port-fill" style="background: #9b59b6;"></div>
         </div>
     </div>
 
-    <div class="port-item" style="margin-top: 30px;">
-        <div class="port-label">
-            <span>🔄 卡组引擎浓度 (过牌/消耗压缩)</span>
-            <span id="engine-text">0% 过牌 | 0% 压缩</span>
-        </div>
-        <div class="port-bar" style="background-color: #e2e5de; display: flex;">
-            <div id="draw-fill" class="port-fill" style="background-color: #3498db; width: 0%;"></div>
-            <div id="exhaust-fill" class="port-fill" style="background-color: #9b59b6; width: 0%; opacity: 0.8;"></div>
+    <div style="margin-top: 25px; border-top: 2px dashed #eee; padding-top: 15px;">
+        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem;">🧩 卡组端口雷达 (目标 30 牌规模)</h3>
+        <div id="port-summary-container" style="font-size: 0.85rem; color: #555; display: flex; flex-direction: column; gap: 8px;">
+            <span style="color:#aaa;">请先向卡组添加并鉴定卡牌...</span>
         </div>
     </div>
 
-    <div id="tactics-radar" style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed #ddd; display: none;">
-        <h3 style="font-size: 1rem; color: #d35400; margin-top: 0;">⚙️ 进阶战术联动监控</h3>
-
-        <div class="port-label" style="margin-top: 10px;">
-            <span>🔄 弃牌轴咬合度 (发动机 vs 火花塞)</span>
-            <span id="discard-text" style="font-weight: bold;">未启动</span>
+    <div style="margin-top: 25px; border-top: 2px dashed #eee; padding-top: 15px;">
+        <h3 style="margin-top: 0; color: #e67e22; font-size: 1rem;">🎯 首回合上手率 (超几何分布模型)</h3>
+        <p style="font-size: 0.8rem; color: #999; margin: 0 0 10px 0;">展示在当前过牌能力下，首发抓到同名关键牌的概率。</p>
+        <div id="prob-container" style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
+            <span style="color:#aaa;">等待卡组数据...</span>
         </div>
+    </div>
+</div>
 
-        <div class="port-bar" style="background-color: #e2e5de; display: flex; margin-bottom: 8px;">
-            <div id="enabler-fill" class="port-fill" style="background-color: #3498db; width: 0%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: white; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
-            <div id="finesse-fill" class="port-fill" style="background-color: #9b59b6; width: 0%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: white; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+<div id="inspector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1000; align-items: center; justify-content: center;">
+    <div id="inspector-content-box" style="background: #fff; padding: 25px; border-radius: 12px; width: 400px; border: 3px solid #2980b9; box-shadow: 0 0 40px rgba(41, 128, 185, 0.4);">
+        <h2 style="margin-top: 0; display: flex; justify-content: space-between;">
+            <span>🏷️ 卡牌鉴定</span>
+            <span id="inspector-card-name" style="color: #2980b9;"></span>
+        </h2>
+        <div style="margin-bottom: 20px;">
+            <h4>👑 抓取梯度 (Tier)</h4>
+            <div id="tier-container" style="display: flex; gap: 8px;"></div>
         </div>
-
-        <div style="font-size: 0.85rem; color: #555; background: #eef0eb; padding: 8px; border-radius: 6px; border: 1px solid #e0e4d8;" id="discard-desc">
-            需要主动丢弃牌来触发奇巧牌。
+        <div style="margin-bottom: 20px;">
+            <h4>🧩 核心端口标签 (最多3项)</h4>
+            <div id="tag-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px;">
+            <button onclick="closeInspector()" style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #f1f2f6; color: #576574; font-weight: bold; cursor: pointer;">
+                取消
+            </button>
+            <button onclick="saveInspectorData()" style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #27ae60; color: #ffffff; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);">
+                💾 保存鉴定
+            </button>
         </div>
     </div>
 </div>
 
 <script src="app.js"></script>
-
-<div id="inspector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: #fff; padding: 20px; border-radius: 12px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-
-        <h2 id="inspector-title" style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between;">
-            <span>🏷️ 卡牌鉴定</span>
-            <span id="inspector-card-name" style="color: #2980b9;">卡牌名</span>
-        </h2>
-
-        <div style="margin-bottom: 20px;">
-            <h4 style="margin-bottom: 10px;">👑 抓取梯度 (单选)</h4>
-            <div id="tier-container" style="display: flex; gap: 10px;">
-            </div>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <h4 style="margin-bottom: 10px;">🧩 卡组端口 (最多选 3 个)</h4>
-            <div id="tag-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-            <button onclick="closeInspector()" style="padding: 8px 15px; border: none; border-radius: 5px; background: #ecf0f1; cursor: pointer;">取消</button>
-            <button onclick="saveInspectorData()" style="padding: 8px 15px; border: none; border-radius: 5px; background: #27ae60; color: white; font-weight: bold; cursor: pointer;">💾 保存鉴定</button>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>
