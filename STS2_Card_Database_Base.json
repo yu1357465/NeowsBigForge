@@ -1,0 +1,3521 @@
+{
+    "Abrasive": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Accelerant": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Accuracy": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Acrobatics": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "AdaptiveStrike": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Adrenaline": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Afterimage": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Afterlife": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Aggression": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Alchemize": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "Alignment": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "AllForOne": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Anger": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Anointed": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Anticipate": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Apotheosis": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Event",
+        "UpgradeCostBy": -1
+    },
+    "Apparition": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "Armaments": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Arsenal": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "AscendersBane": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "AshenStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Assassinate": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "AstralPulse": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Automation": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "Backflip": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Backstab": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "BadLuck": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "BallLightning": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "BansheesCry": {
+        "Cost": 9,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -2
+    },
+    "Barrage": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Barricade": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Bash": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Ironclad"
+    },
+    "BattleTrance": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "BeaconOfHope": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "BeamCell": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "BeatDown": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "BeatIntoShape": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Beckon": {
+        "Cost": 1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Begone": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "BelieveInYou": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "BiasedCognition": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Ancient",
+        "Class": "Defect"
+    },
+    "BigBang": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "BlackHole": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "BladeDance": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "BladeOfInk": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "BlightStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Bloodletting": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "BloodWall": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Bludgeon": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Blur": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Bodyguard": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Necrobinder"
+    },
+    "BodySlam": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Bolas": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Bombardment": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "BoneShards": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "BoostAway": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "BootSequence": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "BorrowedTime": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "BouncingFlask": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Brand": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Break": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Ironclad"
+    },
+    "Breakthrough": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "BrightestFlame": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "BubbleBubble": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Buffer": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "BulkUp": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "BulletTime": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "Bully": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Bulwark": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "BundleOfJoy": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Burn": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "BurningPact": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Burst": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Bury": {
+        "Cost": 4,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "ByrdonisEgg": {
+        "Cost": -1,
+        "Type": "Quest",
+        "Rarity": "Quest",
+        "Class": "Quest"
+    },
+    "ByrdSwoop": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Calamity": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "Calcify": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "CalculatedGamble": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "CallOfTheVoid": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Caltrops": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Capacitor": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "CaptureSpirit": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Cascade": {
+        "Cost": -1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Catastrophe": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "CelestialMight": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Chaos": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Charge": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "ChargeBattery": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "ChildOfTheStars": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Chill": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Cinder": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Clash": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Claw": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Cleanse": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "CloakAndDagger": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "CloakOfStars": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Clumsy": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "ColdSnap": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "CollisionCourse": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Colossus": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Comet": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Compact": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "CompileDriver": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Conflagration": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Conqueror": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "ConsumingShadow": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Convergence": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Coolant": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Coolheaded": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Coordinate": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "CorrosiveWave": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Corruption": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Ancient",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "CosmicIndifference": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Countdown": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "CrashLanding": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "CreativeAi": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "CrescentSpear": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "CrimsonMantle": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Cruelty": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "CrushUnder": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "CurseOfTheBell": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "DaggerSpray": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "DaggerThrow": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "DanseMacabre": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "DarkEmbrace": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Darkness": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "DarkShackles": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Dash": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Dazed": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "DeadlyPoison": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Deathbringer": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "DeathMarch": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "DeathsDoor": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Debilitate": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Debris": {
+        "Cost": 1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Debt": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Decay": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "DecisionsDecisions": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "DefendDefect": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Defect"
+    },
+    "DefendIronclad": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Ironclad"
+    },
+    "DefendNecrobinder": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Necrobinder"
+    },
+    "DefendRegent": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Regent"
+    },
+    "DefendSilent": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Silent"
+    },
+    "Defile": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Deflect": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Defragment": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Defy": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Delay": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Demesne": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "DemonForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "DemonicShield": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "DeprecatedCard": {
+        "Cost": 0,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Deprecated"
+    },
+    "Devastate": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "DevourLife": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Dirge": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Discovery": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Disintegration": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Token"
+    },
+    "Dismantle": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Distraction": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event",
+        "UpgradeCostBy": -1
+    },
+    "DodgeAndRoll": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Dominate": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "DoubleEnergy": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "Doubt": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "DrainPower": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "DramaticEntrance": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Dredge": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "DrumOfBattle": {
+        "Cost": 0,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Dualcast": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "DualWield": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "DyingStar": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "EchoForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "EchoingSlash": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Eidolon": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "EndOfDays": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "EnergySurge": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "EnfeeblingTouch": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Enlightenment": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Enthralled": {
+        "Cost": 2,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Entrench": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event",
+        "UpgradeCostBy": -1
+    },
+    "Entropy": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Envenom": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Equilibrium": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Eradicate": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "EscapePlan": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "EternalArmor": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "EvilEye": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "ExpectAFight": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Expertise": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Expose": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Exterminate": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "FallingStar": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Regent"
+    },
+    "FanOfKnives": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Fasten": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Fear": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Feed": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "FeedingFrenzy": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "FeelNoPain": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Feral": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "Fetch": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "FiendFire": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "FightMe": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "FightThrough": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Finesse": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Finisher": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Fisticuffs": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "FlakCannon": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "FlameBarrier": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Flanking": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "FlashOfSteel": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Flatten": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Flechettes": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "FlickFlack": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "FocusedStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "FollowThrough": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Folly": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Footwork": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "ForbiddenGrimoire": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Ancient",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "ForegoneConclusion": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "ForgottenRitual": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "FranticEscape": {
+        "Cost": 1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Friendship": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Ftl": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Fuel": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "Furnace": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Fusion": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "GammaBlast": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "GangUp": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "GatherLight": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Genesis": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "GeneticAlgorithm": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "GiantRock": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "Glacier": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Glasswork": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Glimmer": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "GlimpseBeyond": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Glitterstream": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Glow": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "GoForTheEyes": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "GoldAxe": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "GrandFinale": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Graveblast": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "GraveWarden": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Greed": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Guards": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "GuidingStar": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Guilty": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "GunkUp": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Hailstorm": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "HammerTime": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "HandOfGreed": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "HandTrick": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Hang": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Haunt": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Havoc": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Haze": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Headbutt": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "HeavenlyDrill": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Hegemony": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "HeirloomHammer": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "HelixDrill": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "HelloWorld": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Hellraiser": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Hemokinesis": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "HiddenCache": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "HiddenDaggers": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "HiddenGem": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "HighFive": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Hologram": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Hotfix": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "HowlFromBeyond": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "HuddleUp": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Hyperbeam": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "IAmInvincible": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "IceLance": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Ignition": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Impatience": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Impervious": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Infection": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "InfernalBlade": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Inferno": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "InfiniteBlades": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Inflame": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Injury": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Intercept": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Invoke": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "IronWave": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Iteration": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "JackOfAllTrades": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Jackpot": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Juggernaut": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Juggling": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "KinglyKick": {
+        "Cost": 4,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "KinglyPunch": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "KnifeTrap": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Knockdown": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "KnockoutBlow": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "KnowThyPlace": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "LanternKey": {
+        "Cost": -1,
+        "Type": "Quest",
+        "Rarity": "Quest",
+        "Class": "Quest"
+    },
+    "Largesse": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "LeadingStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Leap": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "LegionOfBone": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "LegSweep": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Lethality": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Lift": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "LightningRod": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Loop": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Luminesce": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "LunarBlast": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "MachineLearning": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "MadScience": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "MakeItSo": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Malaise": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Mangle": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "ManifestAuthority": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "MasterOfStrategy": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "MasterPlanner": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "Maul": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "Mayhem": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "Melancholy": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "MementoMori": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Metamorphosis": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "MeteorShower": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Regent"
+    },
+    "MeteorStrike": {
+        "Cost": 5,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Mimic": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "MindBlast": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "MindRot": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Token"
+    },
+    "MinionDiveBomb": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "MinionSacrifice": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "MinionStrike": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "Mirage": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "Misery": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Modded": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "MoltenFist": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "MomentumStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "MonarchsGaze": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "Monologue": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "MultiCast": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Murder": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "NecroMastery": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "NegativePulse": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "NeowsFury": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "Neurosurge": {
+        "Cost": 0,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Neutralize": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Silent"
+    },
+    "NeutronAegis": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Nightmare": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "NoEscape": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Normality": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Nostalgia": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "NotYet": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "NoxiousFumes": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Null": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Oblivion": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Offering": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Omnislice": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "OneTwoPunch": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Orbit": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "Outbreak": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Outmaneuver": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Overclock": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "PactsEnd": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Pagestorm": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "PaleBlueDot": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Panache": {
+        "Cost": 0,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "PanicButton": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Parry": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Parse": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "ParticleWall": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Patter": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Peck": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "PerfectedStrike": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "PhantomBlades": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "PhotonCut": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "PiercingWail": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Pillage": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "PillarOfCreation": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Pinpoint": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "PoisonedStab": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Poke": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "PommelStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "PoorSleep": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Pounce": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "PreciseCut": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Predator": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Prepared": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "PrepTime": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "PrimalForce": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Production": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Prolong": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Prophesize": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Protector": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "Prowess": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "PullAggro": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "PullFromBelow": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Purity": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Putrefy": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Pyre": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Quadcast": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "Quasar": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Radiate": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Rage": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Rainbow": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Rally": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Rampage": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Rattle": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Reanimate": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Reap": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "ReaperForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Reave": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Reboot": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Rebound": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "RefineBlade": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Reflect": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Reflex": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Refract": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Regret": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Relax": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "Rend": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Resonance": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Restlessness": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Ricochet": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "RightHandHand": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "RipAndTear": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "RocketPunch": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "RollingBoulder": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "RoyalGamble": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Royalties": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Rupture": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Sacrifice": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "Salvo": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "Scavenge": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Scourge": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Scrape": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Scrawl": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "SculptingStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Seance": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "SecondWind": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "SecretTechnique": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "SecretWeapon": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "SeekerStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "SeekingEdge": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "SentryMode": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder",
+        "UpgradeCostBy": -1
+    },
+    "SerpentForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "SetupStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "SevenStars": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "Severance": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Shadowmeld": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "ShadowShield": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "ShadowStep": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "Shame": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "SharedFate": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Shatter": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "ShiningStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Shiv": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "Shockwave": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Shroud": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "ShrugItOff": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "SicEm": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "SignalBoost": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "Skewer": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Skim": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "SleightOfFlesh": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Slice": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Slimed": {
+        "Cost": 1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Sloth": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Token"
+    },
+    "Smokestack": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Snakebite": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "Snap": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Sneaky": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "SolarStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Soot": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Soul": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "SoulStorm": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "SovereignBlade": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token",
+        "UpgradeCostBy": -1
+    },
+    "Sow": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "SpectrumShift": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "Speedster": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Spinner": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "SpiritOfAsh": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Spite": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Splash": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "SpoilsMap": {
+        "Cost": -1,
+        "Type": "Quest",
+        "Rarity": "Quest",
+        "Class": "Quest"
+    },
+    "SpoilsOfBattle": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "SporeMind": {
+        "Cost": 1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "Spur": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Squash": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Squeeze": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Stack": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Stampede": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Stardust": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Stoke": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Stomp": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "StoneArmor": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Storm": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "StormOfSteel": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "Strangle": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Stratagem": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Colorless",
+        "UpgradeCostBy": -1
+    },
+    "StrikeDefect": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Defect"
+    },
+    "StrikeIronclad": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Ironclad"
+    },
+    "StrikeNecrobinder": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Necrobinder"
+    },
+    "StrikeRegent": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Regent"
+    },
+    "StrikeSilent": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Silent"
+    },
+    "Subroutine": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "SuckerPunch": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "SummonForth": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Sunder": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Supercritical": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Supermassive": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "Suppress": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Silent"
+    },
+    "Survivor": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Silent"
+    },
+    "SweepingBeam": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "SweepingGaze": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Token",
+        "Class": "Token"
+    },
+    "SwordBoomerang": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "SwordSage": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent",
+        "UpgradeCostBy": -1
+    },
+    "Synchronize": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Synthesis": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Tactician": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "TagTeam": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Tank": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Taunt": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "TearAsunder": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "Tempest": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Terraforming": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Regent"
+    },
+    "TeslaCoil": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "TheBomb": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "TheGambit": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Colorless"
+    },
+    "TheHunt": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Silent"
+    },
+    "TheScythe": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "TheSealedThrone": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Ancient",
+        "Class": "Regent"
+    },
+    "TheSmith": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "ThinkingAhead": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Thrash": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Ironclad"
+    },
+    "ThrummingHatchet": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Thunder": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Defect"
+    },
+    "Thunderclap": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "TimesUp": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "ToolsOfTheTrade": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "ToricToughness": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Event",
+        "Class": "Event"
+    },
+    "Toxic": {
+        "Cost": 1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "Tracking": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Silent",
+        "UpgradeCostBy": -1
+    },
+    "Transfigure": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "TrashToTreasure": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "Tremble": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "TrueGrit": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Turbo": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "TwinStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Ironclad"
+    },
+    "Tyranny": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "UltimateDefend": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "UltimateStrike": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Undeath": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Necrobinder"
+    },
+    "Unleash": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Basic",
+        "Class": "Necrobinder"
+    },
+    "Unmovable": {
+        "Cost": 2,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Ironclad",
+        "UpgradeCostBy": -1
+    },
+    "Unrelenting": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Untouchable": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Silent"
+    },
+    "UpMySleeve": {
+        "Cost": 2,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Uppercut": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Uproar": {
+        "Cost": 2,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Defect"
+    },
+    "Veilpiercer": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Necrobinder"
+    },
+    "Venerate": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Regent"
+    },
+    "Vicious": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Void": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "VoidForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Rare",
+        "Class": "Regent"
+    },
+    "Volley": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Colorless"
+    },
+    "Voltaic": {
+        "Cost": 3,
+        "Type": "Skill",
+        "Rarity": "Rare",
+        "Class": "Defect"
+    },
+    "WasteAway": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Token"
+    },
+    "WellLaidPlans": {
+        "Cost": 1,
+        "Type": "Power",
+        "Rarity": "Uncommon",
+        "Class": "Silent"
+    },
+    "Whirlwind": {
+        "Cost": 0,
+        "Type": "Attack",
+        "Rarity": "Uncommon",
+        "Class": "Ironclad"
+    },
+    "Whistle": {
+        "Cost": 3,
+        "Type": "Attack",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "WhiteNoise": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Uncommon",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    },
+    "Wish": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Ancient",
+        "Class": "Event"
+    },
+    "Wisp": {
+        "Cost": 0,
+        "Type": "Skill",
+        "Rarity": "Common",
+        "Class": "Necrobinder"
+    },
+    "Wound": {
+        "Cost": -1,
+        "Type": "Status",
+        "Rarity": "Status",
+        "Class": "Status"
+    },
+    "WraithForm": {
+        "Cost": 3,
+        "Type": "Power",
+        "Rarity": "Ancient",
+        "Class": "Silent"
+    },
+    "Writhe": {
+        "Cost": -1,
+        "Type": "Curse",
+        "Rarity": "Curse",
+        "Class": "Curse"
+    },
+    "WroughtInWar": {
+        "Cost": 1,
+        "Type": "Attack",
+        "Rarity": "Common",
+        "Class": "Regent"
+    },
+    "Zap": {
+        "Cost": 1,
+        "Type": "Skill",
+        "Rarity": "Basic",
+        "Class": "Defect",
+        "UpgradeCostBy": -1
+    }
+}

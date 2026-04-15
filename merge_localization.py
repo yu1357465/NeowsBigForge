@@ -3,7 +3,7 @@ import re
 import os
 
 # 配置文件路径
-DATABASE_FILE = "STS2_Card_Database.json"  # 我们上一步生成的图纸
+DATABASE_FILE = "STS2_Card_Database_Base.json"  # 我们上一步生成的图纸
 LOC_FILE = r"D:\MyFiles_UK_updated\Tools_Software\MyProjects\NeowsForge\SlayTheSpire2pck\localization\zhs\cards.json"  # 你找到的字典文件
 OUTPUT_FILE = "STS2_Card_Database_ZHS.json" # 最终输出的中文图纸
 
