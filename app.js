@@ -423,7 +423,8 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
     const baseEnergy = parseFloat(document.getElementById('energy-input')?.value || 3);
     const baseDraw = parseInt(document.getElementById('draw-input')?.value || 5);
 
-    let expectedEnergySpend = avgCost * 5;
+    // 改动：将硬编码的 5 改为动态的 baseDraw，并添加注释
+    let expectedEnergySpend = avgCost * baseDraw;
     let energyText = document.getElementById('energy-text');
     let energyFill = document.getElementById('energy-fill');
     if (energyText && energyFill) {
@@ -788,6 +789,81 @@ function importDictionary(event) {
     reader.readAsText(file);
     // 重置 input，允许重复导入相同文件
     event.target.value = '';
+}
+
+// 能量助手逻辑
+function toggleEnergyHelper() {
+    const modal = document.getElementById('energy-helper-modal');
+    modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+    if(modal.style.display === 'flex') updateHelperLogic();
+}
+
+// 监听动态输入
+// 替换为全新的七回合推演计算核心
+function updateHelperLogic() {
+    const base = parseFloat(document.getElementById('calc-base').value || 3);
+    const constant = parseFloat(document.getElementById('calc-constant').value || 0);
+    const burst = parseFloat(document.getElementById('calc-burst').value || 0);
+    const periodN = parseInt(document.getElementById('calc-period-n').value || 3);
+    const periodVal = parseFloat(document.getElementById('calc-period-val').value || 0);
+    const breadMinus = parseFloat(document.getElementById('calc-bread-minus').value || 0);
+    const breadPlus = parseFloat(document.getElementById('calc-bread-plus').value || 0);
+
+    let turnEnergies = [];
+    let totalEnergy = 0;
+
+    // 核心机制：按时间轴推演 1 到 7 回合
+    for (let i = 1; i <= 7; i++) {
+        let currentTurnEnergy = base + constant;
+
+        // 首回合逻辑
+        if (i === 1) {
+            currentTurnEnergy += burst;
+            currentTurnEnergy -= breadMinus;
+        } else {
+            // 后续回合逻辑 (从第2回合开始生效)
+            currentTurnEnergy += breadPlus;
+        }
+
+        // 周期逻辑 (例如每3回合触发，则在第3、第6回合生效)
+        if (periodVal > 0 && periodN > 0 && i % periodN === 0) {
+            currentTurnEnergy += periodVal;
+        }
+
+        // 现实修正：防止能量出现负数
+        currentTurnEnergy = Math.max(0, currentTurnEnergy);
+
+        turnEnergies.push(currentTurnEnergy);
+        totalEnergy += currentTurnEnergy;
+    }
+
+    const result = totalEnergy / 7;
+
+    document.getElementById('calc-result').innerText = `沙盘等效值: ${result.toFixed(2)}`;
+    // 展示每一回合的具体能量，所见即所得
+    document.getElementById('calc-formula').innerText = `明细: (${turnEnergies.join(' + ')}) / 7`;
+
+    window.lastCalcResult = result;
+}
+
+// 辅助重置功能
+function resetHelper() {
+    document.getElementById('calc-base').value = 3;
+    document.getElementById('calc-constant').value = 0;
+    document.getElementById('calc-burst').value = 0;
+    document.getElementById('calc-period-n').value = 3;
+    document.getElementById('calc-period-val').value = 0;
+    document.getElementById('calc-bread-minus').value = 0;
+    document.getElementById('calc-bread-plus').value = 0;
+    updateHelperLogic();
+}
+
+function applyEnergyResult() {
+    if(window.lastCalcResult) {
+        document.getElementById('energy-input').value = window.lastCalcResult.toFixed(2);
+        updateWorkshop();
+        toggleEnergyHelper();
+    }
 }
 
 // 启动引擎

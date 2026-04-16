@@ -110,11 +110,69 @@
         <div class="control-row">
             <div class="input-group">
                 <label>能量:</label>
-                <input type="number" id="energy-input" value="3" min="1" max="99">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="number" id="energy-input" value="3.0" min="1" max="99" step="0.1" oninput="updateWorkshop()">
+                    <button class="action-btn" style="padding: 2px 6px; font-size: 0.8rem; background: #f1c40f; color: #333;" onclick="toggleEnergyHelper()">助</button>
+                </div>
+            </div>
+
+            <div id="energy-helper-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: #fff; padding: 20px; border-radius: 12px; width: 400px; border: 3px solid #2980b9; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <h3 style="margin-top: 0; color: #2c3e50; text-align: center;">7回合能量等效换算 (支持叠加)</h3>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: #333;">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <b>基础能量:</b>
+                            <input type="number" id="calc-base" value="3" min="1" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
+                        </label>
+
+                        <hr style="border: 0; border-top: 1px dashed #e0e4d8; margin: 2px 0;">
+
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            先古遗物 (每回合常驻加费):
+                            <input type="number" id="calc-constant" value="0" min="0" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
+                        </label>
+
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            开场爆发 (仅首回合加费):
+                            <input type="number" id="calc-burst" value="0" min="0" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
+                        </label>
+
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            周期加费 (每X回合触发):
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <input type="number" id="calc-period-n" value="3" min="1" max="7" style="width: 40px; text-align: center;" oninput="updateHelperLogic()" title="填3代表每3回合触发">
+                                <span>回+</span>
+                                <input type="number" id="calc-period-val" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()" title="填1代表触发时加1费">
+                            </div>
+                        </label>
+
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            置换启动 (首回扣X,后续加Y):
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <span>首-</span><input type="number" id="calc-bread-minus" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
+                                <span>后+</span><input type="number" id="calc-bread-plus" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
+                            </div>
+                        </label>
+
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #eef0eb;">
+                            <div id="calc-result" style="font-weight: bold; color: #2980b9; font-size: 1.3rem; text-align: center;">沙盘等效值: 3.00</div>
+                            <div id="calc-formula" style="font-size: 0.8rem; color: #7f8c8d; margin-top: 8px; text-align: center;">明细: (3 + 3 + 3 + 3 + 3 + 3 + 3) / 7</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                        <button onclick="resetHelper()" class="action-btn" style="background: #ecf0f1; color: #7f8c8d;">重置归零</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="toggleEnergyHelper()" class="action-btn">取消</button>
+                            <button onclick="applyEnergyResult()" class="action-btn" style="background: #27ae60; color: #fff;">应用数值</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="input-group">
                 <label>抽牌:</label>
-                <input type="number" id="draw-input" value="5" min="1" max="99">
+                <input type="number" id="draw-input" value="5" min="1" max="99" oninput="updateWorkshop()">
             </div>
         </div>
     </div>
