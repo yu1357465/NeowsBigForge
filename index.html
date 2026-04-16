@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <title>NeowsBigForge - 杀戮尖塔2 定性构筑沙盘</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* 强制覆盖部分面板属性，确保不出现幽灵滚动条 */
+        .panel {
+            overflow-y: auto !important;
+            padding: 15px !important;
+        }
+        /* 压缩雷达条的间距 */
+        .port-item {
+            margin-top: 8px !important;
+        }
+    </style>
 </head>
 <body>
 
 <div id="library-panel" class="panel">
     <h2>卡牌图纸库 (显示: <span id="card-count" class="stat-badge">0</span>)</h2>
 
-    <div style="background: #ffffff; border: 1px solid #e0e4d8; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);"
+    <div style="background: #ffffff; border: 1px solid #e0e4d8; border-radius: 8px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);"
          ondragover="event.preventDefault()"
          ondrop="dropToDraft(event)">
 
-        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; border-bottom: 1px dashed #e0e4d8; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; border-bottom: 1px dashed #e0e4d8; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span>抓牌推演台 (端口匹配分析)</span>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <span style="font-size: 0.8rem; color: #2980b9; font-weight: bold;">右键库中卡牌进行【鉴定打标】</span>
@@ -35,14 +46,14 @@
             <tbody id="draft-tbody"></tbody>
         </table>
 
-        <div id="draft-empty-tip" style="text-align: center; color: #aaa; padding: 20px 0; font-size: 0.85rem;">
+        <div id="draft-empty-tip" style="text-align: center; color: #aaa; padding: 15px 0; font-size: 0.85rem;">
             按住卡牌拖拽至此处，进行定性匹配推演
         </div>
     </div>
 
     <div class="filter-bar">
         <div class="control-row">
-            <input type="text" id="search-input" placeholder="搜索卡牌..." oninput="filterCards()">
+            <input type="text" id="search-input" placeholder="搜索卡牌 (支持拼音首字母)..." oninput="filterCards()">
 
             <select id="class-filter" onchange="filterCards()">
                 <option value="all">所有职业</option>
@@ -118,55 +129,36 @@
 
             <div id="energy-helper-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
                 <div style="background: #fff; padding: 20px; border-radius: 12px; width: 400px; border: 3px solid #2980b9; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                    <h3 style="margin-top: 0; color: #2c3e50; text-align: center;">7回合能量等效换算 (支持叠加)</h3>
-
+                    <h3 style="margin-top: 0; color: #2c3e50; text-align: center;">7回合能量等效换算</h3>
                     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: #333;">
                         <label style="display: flex; justify-content: space-between; align-items: center;">
                             <b>基础能量:</b>
                             <input type="number" id="calc-base" value="3" min="1" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
                         </label>
-
                         <hr style="border: 0; border-top: 1px dashed #e0e4d8; margin: 2px 0;">
-
                         <label style="display: flex; justify-content: space-between; align-items: center;">
-                            先古遗物 (每回合常驻加费):
+                            先古遗物 (每回合常驻):
                             <input type="number" id="calc-constant" value="0" min="0" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
                         </label>
-
                         <label style="display: flex; justify-content: space-between; align-items: center;">
-                            开场爆发 (仅首回合加费):
+                            开场爆发 (仅首回合):
                             <input type="number" id="calc-burst" value="0" min="0" max="10" style="width: 60px; text-align: center;" oninput="updateHelperLogic()">
                         </label>
-
                         <label style="display: flex; justify-content: space-between; align-items: center;">
-                            周期加费 (每X回合触发):
+                            周期加费 (每X回触发):
                             <div style="display: flex; gap: 5px; align-items: center;">
-                                <input type="number" id="calc-period-n" value="3" min="1" max="7" style="width: 40px; text-align: center;" oninput="updateHelperLogic()" title="填3代表每3回合触发">
+                                <input type="number" id="calc-period-n" value="3" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
                                 <span>回+</span>
-                                <input type="number" id="calc-period-val" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()" title="填1代表触发时加1费">
+                                <input type="number" id="calc-period-val" value="0" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
                             </div>
                         </label>
-
-                        <label style="display: flex; justify-content: space-between; align-items: center;">
-                            置换启动 (首回扣X,后续加Y):
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <span>首-</span><input type="number" id="calc-bread-minus" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
-                                <span>后+</span><input type="number" id="calc-bread-plus" value="0" min="0" max="10" style="width: 40px; text-align: center;" oninput="updateHelperLogic()">
-                            </div>
-                        </label>
-
                         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #eef0eb;">
-                            <div id="calc-result" style="font-weight: bold; color: #2980b9; font-size: 1.3rem; text-align: center;">沙盘等效值: 3.00</div>
-                            <div id="calc-formula" style="font-size: 0.8rem; color: #7f8c8d; margin-top: 8px; text-align: center;">明细: (3 + 3 + 3 + 3 + 3 + 3 + 3) / 7</div>
+                            <div id="calc-result" style="font-weight: bold; color: #2980b9; font-size: 1.3rem; text-align: center;">等效值: 3.00</div>
                         </div>
                     </div>
-
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                        <button onclick="resetHelper()" class="action-btn" style="background: #ecf0f1; color: #7f8c8d;">重置归零</button>
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="toggleEnergyHelper()" class="action-btn">取消</button>
-                            <button onclick="applyEnergyResult()" class="action-btn" style="background: #27ae60; color: #fff;">应用数值</button>
-                        </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <button onclick="toggleEnergyHelper()" class="action-btn">取消</button>
+                        <button onclick="applyEnergyResult()" class="action-btn" style="background: #27ae60; color: #fff;">应用</button>
                     </div>
                 </div>
             </div>
@@ -181,9 +173,9 @@
 
 <div id="port-panel" class="panel">
     <h2>定性分析仪表盘</h2>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button class="action-btn" style="background-color: #636e72; font-size: 0.8rem;" onclick="exportDictionary()">导出字典备份</button>
-        <button class="action-btn" style="background-color: #636e72; font-size: 0.8rem;" onclick="document.getElementById('import-input').click()">导入字典备份</button>
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="action-btn" style="background-color: #636e72; font-size: 0.75rem; padding: 4px 8px;" onclick="exportDictionary()">导出字典</button>
+        <button class="action-btn" style="background-color: #636e72; font-size: 0.75rem; padding: 4px 8px;" onclick="document.getElementById('import-input').click()">导入字典</button>
         <input type="file" id="import-input" style="display: none;" accept=".json" onchange="importDictionary(event)">
     </div>
 
@@ -192,17 +184,17 @@
         <div class="port-bar"><div id="energy-fill" class="port-fill"></div></div>
     </div>
 
-    <div class="port-item" style="margin-top: 15px;">
-        <div class="port-label"><span>卡组润滑度 (过牌与压缩)</span><span id="engine-text">0% | 0%</span></div>
+    <div class="port-item" style="margin-top: 10px;">
+        <div class="port-label"><span>卡组润滑度</span><span id="engine-text">0% | 0%</span></div>
         <div class="port-bar" style="display: flex;">
             <div id="draw-fill" class="port-fill" style="background: #3498db;"></div>
             <div id="exhaust-fill" class="port-fill" style="background: #9b59b6;"></div>
         </div>
     </div>
 
-    <div style="margin-top: 25px; border-top: 2px dashed #eee; padding-top: 15px;">
-        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem;">卡组端口雷达 (目标 30 牌规模)</h3>
-        <div id="port-summary-container" style="font-size: 0.85rem; color: #555; display: flex; flex-direction: column; gap: 8px;">
+    <div style="margin-top: 12px; border-top: 2px dashed #eee; padding-top: 10px;">
+        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; margin-bottom: 6px;">卡组端口雷达 (目标 30 牌规模)</h3>
+        <div id="port-summary-container" style="font-size: 0.85rem; color: #555; display: flex; flex-direction: column; gap: 6px;">
             <span style="color:#aaa;">请先向卡组添加并鉴定卡牌...</span>
         </div>
     </div>
@@ -219,22 +211,17 @@
             <div id="tier-container" style="display: flex; gap: 8px;"></div>
         </div>
         <div style="margin-bottom: 20px;">
-            <h4>核心端口标签 (最多3项)</h4>
+            <h4>核心端口标签</h4>
             <div id="tag-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px;">
-            <button onclick="closeInspector()" style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #f1f2f6; color: #576574; font-weight: bold; cursor: pointer;">
-                取消
-            </button>
-            <button onclick="saveInspectorData()" style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #27ae60; color: #ffffff; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);">
-                保存鉴定
-            </button>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button onclick="closeInspector()" class="action-btn" style="background: #f1f2f6; color: #576574;">取消</button>
+            <button onclick="saveInspectorData()" class="action-btn" style="background: #27ae60; color: #ffffff;">保存鉴定</button>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.18.3/dist/index.min.js"></script>
-
 <script src="app.js"></script>
 </body>
 </html>

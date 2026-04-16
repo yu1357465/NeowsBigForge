@@ -494,6 +494,54 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
     const portContainer = document.getElementById('port-summary-container');
     if (portContainer) {
         portContainer.innerHTML = '';
+
+// --- 改动后的新代码开始 (马斯洛需求法则：最高指令系统) ---
+        const PRIORITY_HIERARCHY = [
+            { tag: "过渡输出", msg: "你的前期伤害极度匮乏，极易在第一层暴毙！立刻寻找优质攻击牌，停止抓取能力牌和过牌！" },
+            { tag: "过渡防御", msg: "战损控制能力严重不足！遇到连续高攻怪会快速死亡，急需补充基础护盾或虚弱牌！" },
+            { tag: "终端防御", msg: "面对后期高额伤害毫无抵抗力！必须立刻寻找群体虚弱、无实体或大额护盾！" },
+            { tag: "终端输出", msg: "缺乏破局的制胜手段！打不死后期血牛怪物，需要寻找高爆发核心或无限流组件！" },
+            { tag: "润滑运转", msg: "卡组极其笨重，极大概率开局卡手暴毙！立刻寻找优质过牌或消耗牌，坚决停止抓取任何高费牌！" }
+        ];
+
+        let topPriorityHTML = "";
+        let currentDeckSize = myDeck.length; // 获取当前卡组厚度
+
+        // 只有卡组里有牌时，才进行指令诊断
+        if (currentDeckSize > 0) {
+            for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
+                let p = PRIORITY_HIERARCHY[i];
+                let currentCount = tagCounts[p.tag] || 0;
+                let targetCount = TARGET_SLOTS[p.tag] || 1;
+                let pctRatio = currentCount / targetCount;
+
+                if (currentCount === 0) {
+                    topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(192, 57, 43, 0.2);">
+                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 极度缺乏：${p.tag}</div>
+                        <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
+                    </div>`;
+                    break; // 找到最底层的致命短板，立刻终止诊断
+                } else if (pctRatio < 0.5) {
+                    topPriorityHTML = `<div style="background:#e67e22; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(230, 126, 34, 0.2);">
+                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[紧急警告] 急需补强：${p.tag}</div>
+                        <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
+                    </div>`;
+                    break; // 找到高危短板，终止诊断
+                }
+            }
+
+            // 如果遍历完都没有触发红橙警报，说明结构基本达标
+            if (!topPriorityHTML) {
+                topPriorityHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
+                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[运转良好] 卡组结构健康</div>
+                    <div style="font-size:0.85rem; opacity:0.9;">各端口均无致命短板，可根据特定遗物和Boss进行针对性微调。</div>
+                </div>`;
+            }
+
+            // 将生成的指令模块强行置顶插入容器
+            portContainer.innerHTML += topPriorityHTML;
+        }
+
         AVAILABLE_TAGS.forEach(tag => {
             let current = tagCounts[tag];
             let target = TARGET_SLOTS[tag];
