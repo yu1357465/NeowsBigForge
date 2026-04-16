@@ -497,9 +497,15 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         }
     });
 
-    // 4. 动态计算润滑运转目标
+    // --- 改动后的新代码开始 (引入基础抽牌抵扣机制) ---
     let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
-    let dynamicDrawTarget = 4 + Math.ceil(terminalCardCount * 1.5);
+    // 计算先天抽牌优势 (超出基础 5 张的部分)
+    let extraBaseDraw = baseDrawInput > 5 ? (baseDrawInput - 5) : 0;
+
+    // 动态目标 = 基础(4) + 惩罚(1.5*终端) - 先天优势
+    // 用 Math.max(0, ...) 确保目标需求不会变成负数
+    let dynamicDrawTarget = Math.max(0, 4 + Math.ceil(terminalCardCount * 1.5) - extraBaseDraw);
+    // --- 改动后的新代码结束 ---
 
     const TARGET_SLOTS = {
         "过渡输出": 5,
@@ -647,8 +653,13 @@ function updateDrafts() {
         let isEnergyAbundant = currentAvgCost > 0 ? ((baseEnergyInput / currentAvgCost) >= 2.8) : true;
 
         // 3. 准备启动负重惩罚动态目标
+        // --- 改动后的新代码开始 (同步引入抽牌抵扣) ---
         let terminalCountInDeck = (deckTagsCount["终端输出"] || 0) + (deckTagsCount["终端防御"] || 0);
-        let dynamicDrawTargetRef = 4 + Math.ceil(terminalCountInDeck * 1.5);
+        const baseDrawInputForDraft = parseInt(document.getElementById('draw-input')?.value || 5);
+        let extraBaseDrawDraft = baseDrawInputForDraft > 5 ? (baseDrawInputForDraft - 5) : 0;
+
+        let dynamicDrawTargetRef = Math.max(0, 4 + Math.ceil(terminalCountInDeck * 1.5) - extraBaseDrawDraft);
+        // --- 改动后的新代码结束 ---
 
         const TARGET_SLOTS_REF = {
             "过渡输出": 5,
