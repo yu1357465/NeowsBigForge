@@ -373,7 +373,6 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
 }
 
 // ================= 主卡组运转引擎 =================
-// ================= 主卡组运转引擎 =================
 function updateWorkshop() {
     const deckDiv = document.getElementById('my-deck');
     const deckCountEl = document.getElementById('deck-count');
@@ -434,22 +433,42 @@ function updateWorkshop() {
     updateDrafts();
 }
 
-// ================= 全息仪表盘与概率引擎 =================
+// ================= 全息仪表盘与概率引擎 (出牌自由度重构版) =================
 function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
-    const baseEnergy = parseFloat(document.getElementById('energy-input')?.value || 3);
-    const baseDraw = parseInt(document.getElementById('draw-input')?.value || 5);
+    const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
+    const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
 
-    // 改动：将硬编码的 5 改为动态的 baseDraw，并添加注释
-    let expectedEnergySpend = avgCost * baseDraw;
     let energyText = document.getElementById('energy-text');
     let energyFill = document.getElementById('energy-fill');
+
+    // 1. 出牌自由度引擎 (替代旧的能量负载)
     if (energyText && energyFill) {
-        energyText.innerText = `${expectedEnergySpend.toFixed(1)} / ${baseEnergy}`;
-        let pct = Math.min((expectedEnergySpend / baseEnergy) * 100, 100);
-        energyFill.style.width = pct + '%';
-        energyFill.style.backgroundColor = pct > 90 ? '#e74c3c' : (pct > 70 ? '#f39c12' : '#16a085');
+        let labelSpan = energyText.previousElementSibling;
+        if (labelSpan) labelSpan.innerText = "出牌自由度 (能量支撑度)";
+
+        if (avgCost === 0) {
+            energyText.innerText = "0 均费 (极度轻盈)";
+            energyFill.style.width = "100%";
+            energyFill.style.background = "#27ae60";
+        } else {
+            let playableCards = baseEnergyInput / avgCost;
+            energyText.innerText = `均费 ${avgCost.toFixed(2)} | 可出 ${playableCards.toFixed(1)} 张`;
+
+            // 以每回合能支撑打出 3.5 张牌作为 100% 满分标准
+            let pct = Math.min((playableCards / 3.5) * 100, 100);
+            energyFill.style.width = pct + "%";
+
+            if (playableCards >= 3.0) {
+                energyFill.style.background = "#27ae60"; // 绿色：极其流畅
+            } else if (playableCards >= 2.0) {
+                energyFill.style.background = "#f39c12"; // 橙色：偏重
+            } else {
+                energyFill.style.background = "#c0392b"; // 红色：严重卡手
+            }
+        }
     }
 
+    // 2. 润滑度 UI
     let dPct = deckSize > 0 ? (drawCount / deckSize) * 100 : 0;
     let ePct = deckSize > 0 ? (exhaustCount / deckSize) * 100 : 0;
     let drawFill = document.getElementById('draw-fill');
@@ -461,7 +480,7 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         engText.innerText = `${dPct.toFixed(0)}% 过牌 | ${ePct.toFixed(0)}% 压缩`;
     }
 
-
+    // 3. 统计当前标签
     let tagCounts = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
     let tagCardNames = { "过渡输出": [], "过渡防御": [], "终端输出": [], "终端防御": [], "润滑运转": [] };
 
@@ -478,9 +497,8 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         }
     });
 
-    // --- 改动后的新代码开始 (动态计算润滑运转目标) ---
+    // 4. 动态计算润滑运转目标
     let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
-    // 基础运转需求为 4，每多一张终端牌，额外需要 1.5 张过牌/压缩牌来稀释
     let dynamicDrawTarget = 4 + Math.ceil(terminalCardCount * 1.5);
 
     const TARGET_SLOTS = {
@@ -495,7 +513,7 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
     if (portContainer) {
         portContainer.innerHTML = '';
 
-// --- 改动后的新代码开始 (马斯洛需求法则：最高指令系统) ---
+        // 5. 马斯洛需求法则：最高指令系统
         const PRIORITY_HIERARCHY = [
             { tag: "过渡输出", msg: "你的前期伤害极度匮乏，极易在第一层暴毙！立刻寻找优质攻击牌，停止抓取能力牌和过牌！" },
             { tag: "过渡防御", msg: "战损控制能力严重不足！遇到连续高攻怪会快速死亡，急需补充基础护盾或虚弱牌！" },
@@ -505,9 +523,8 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         ];
 
         let topPriorityHTML = "";
-        let currentDeckSize = myDeck.length; // 获取当前卡组厚度
+        let currentDeckSize = myDeck.length;
 
-        // 只有卡组里有牌时，才进行指令诊断
         if (currentDeckSize > 0) {
             for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
                 let p = PRIORITY_HIERARCHY[i];
@@ -520,17 +537,16 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
                         <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 极度缺乏：${p.tag}</div>
                         <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
                     </div>`;
-                    break; // 找到最底层的致命短板，立刻终止诊断
+                    break;
                 } else if (pctRatio < 0.5) {
                     topPriorityHTML = `<div style="background:#e67e22; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(230, 126, 34, 0.2);">
                         <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[紧急警告] 急需补强：${p.tag}</div>
                         <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
                     </div>`;
-                    break; // 找到高危短板，终止诊断
+                    break;
                 }
             }
 
-            // 如果遍历完都没有触发红橙警报，说明结构基本达标
             if (!topPriorityHTML) {
                 topPriorityHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
                     <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[运转良好] 卡组结构健康</div>
@@ -538,42 +554,38 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
                 </div>`;
             }
 
-            // 将生成的指令模块强行置顶插入容器
             portContainer.innerHTML += topPriorityHTML;
         }
 
+        // 6. 渲染雷达条 (硬核预警标准)
         AVAILABLE_TAGS.forEach(tag => {
             let current = tagCounts[tag];
             let target = TARGET_SLOTS[tag];
             let pct = Math.min((current / target) * 100, 100);
 
-            // --- 改动后的新代码开始 (硬核防暴毙预警系统) ---
             let pctRatio = current / target;
             let isOverflow = current > target;
             let statusColor, statusText;
 
             if (current === 0) {
-                statusColor = "#e74c3c"; // 猩红
+                statusColor = "#e74c3c";
                 statusText = "[致命空缺]";
             } else if (isOverflow) {
-                statusColor = "#e67e22"; // 橙色
+                statusColor = "#e67e22";
                 statusText = `[冗余卡手 +${current - target}]`;
             } else if (pctRatio < 0.5) {
-                // 核心改动：完成度不到 50% 时，触发深红色高危警报
                 statusColor = "#c0392b";
                 statusText = "[高危断档]";
             } else if (pctRatio < 0.8) {
-                // 完成度在 50%~80% 之间，触发橘黄色迟缓警报
                 statusColor = "#f39c12";
                 statusText = "[运转迟缓]";
             } else if (current === target) {
-                statusColor = "#27ae60"; // 绿色
+                statusColor = "#27ae60";
                 statusText = "[完美成型]";
             } else {
-                statusColor = "#3498db"; // 蓝色：只有大于80%且没满，才配叫平滑积累
+                statusColor = "#3498db";
                 statusText = "[平滑积累]";
             }
-            // --- 改动后的新代码结束 ---
 
             let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "无";
 
@@ -594,7 +606,6 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
     }
 }
 
-// 位置：app.js
 // ================= 标签协同推演台 (全量防弹版) =================
 function updateDrafts() {
     try {
@@ -602,15 +613,12 @@ function updateDrafts() {
         let tip = document.getElementById('draft-empty-tip');
         if (!tbody) return;
 
-        // 清空内容
         tbody.innerHTML = '';
 
-        // 如果真没有牌，显示提示并正常退出
         if (myDrafts.length === 0) {
             if(tip) tip.style.display = 'block';
             return;
         }
-        // 如果有牌，隐藏提示框
         if(tip) tip.style.display = 'none';
 
         let deckSize = myDeck.length;
@@ -625,21 +633,20 @@ function updateDrafts() {
                     if (deckTagsCount[t] !== undefined) deckTagsCount[t]++;
                 });
             }
-
             let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, card.isUpgraded) : { cost: 0 };
             if (typeof stats.cost === 'number' && stats.cost >= 0) {
                 currentTotalEnergyCost += stats.cost;
             }
         });
 
-        // 2. 准备全局运算参数（能量溢出判断）
+        // 2. 准备全局运算参数（基于出牌自由度的能量判定）
         let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
         const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
-        const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
-        let expectedEnergySpend = currentAvgCost * baseDrawInput;
-        let energyRedundancy = baseEnergyInput - expectedEnergySpend;
 
-        // 3. 准备全局运算参数（启动负重惩罚动态目标）
+        // 判定标准：能量 / 均费 >= 2.8 即视为能量充裕
+        let isEnergyAbundant = currentAvgCost > 0 ? ((baseEnergyInput / currentAvgCost) >= 2.8) : true;
+
+        // 3. 准备启动负重惩罚动态目标
         let terminalCountInDeck = (deckTagsCount["终端输出"] || 0) + (deckTagsCount["终端防御"] || 0);
         let dynamicDrawTargetRef = 4 + Math.ceil(terminalCountInDeck * 1.5);
 
@@ -662,7 +669,6 @@ function updateDrafts() {
             tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
             tr.appendChild(tdCard);
 
-            // 【防御性修复】：强制预设空数组，防止未鉴定牌或残缺字典导致报错崩溃
             let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
             if (!savedInfo.tags) savedInfo.tags = [];
 
@@ -675,7 +681,7 @@ function updateDrafts() {
             tdTags.innerHTML = `${tierHtml}${tagsHtml}`;
             tr.appendChild(tdTags);
 
-            // -- 第三列：协同分析 --
+            // -- 第三列：协同分析 (同步最严苛打分标准) --
             let tdEval = document.createElement('td');
             tdEval.style.padding = "6px 4px";
 
@@ -693,19 +699,19 @@ function updateDrafts() {
                     let pctRatio = currentCount / targetCount;
 
                     if (currentCount === 0) {
-                        score += 80; // 保命级权重：极高加分
+                        score += 80;
                         matchReasons.push(`[救命] 填补致命空缺(${tag})`);
                     } else if (currentCount >= targetCount) {
-                        score -= 100; // 毁灭级惩罚：一票否决，直接抹杀 S 级光环
+                        score -= 100;
                         matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
                     } else if (pctRatio < 0.5) {
-                        score += 50; // 高危抢救
+                        score += 50;
                         matchReasons.push(`[抢救] 挽救高危断档(${tag})`);
                     } else if (pctRatio < 0.8) {
-                        score += 20; // 迟缓补强
+                        score += 20;
                         matchReasons.push(`[润滑] 缓解运转迟缓(${tag})`);
                     } else {
-                        score += 5;  // 接近成型时，收益边际递减，不再鼓励多拿
+                        score += 5;
                         matchReasons.push(`[微调] 趋近完美成型(${tag})`);
                     }
                 });
@@ -719,7 +725,6 @@ function updateDrafts() {
                 } else if (score >= 40) {
                     tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">[优质补强]</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join("<br>")}</span>`;
                 } else if (score < 0) {
-                    // 只要跌破 0 分，直接亮出最高级别红牌警告
                     tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold; font-size:1.1rem;">[系统警告]</span><br><span style="font-size:0.8rem; color:#c0392b; font-weight:bold;">${matchReasons.join("<br>")}</span>`;
                 } else {
                     tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">[收益平庸]</span><br><span style="font-size:0.8rem; color:#666;">非必要抓取</span>`;
@@ -727,7 +732,7 @@ function updateDrafts() {
             }
             tr.appendChild(tdEval);
 
-            // -- 第四列：负载影响计算 --
+            // -- 第四列：负载影响计算 (接入出牌自由度判定) --
             let tdLoad = document.createElement('td');
             tdLoad.style.padding = "6px 4px";
             tdLoad.style.textAlign = "center";
@@ -739,7 +744,7 @@ function updateDrafts() {
             let deltaCost = newAvgCost - currentAvgCost;
 
             if (deltaCost > 0.03) {
-                if (energyRedundancy >= 0.8) {
+                if (isEnergyAbundant) {
                     if (draftCardCost >= 2) {
                         tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 深度吸收溢出</span>`;
                     } else {
@@ -799,7 +804,6 @@ function updateDrafts() {
         });
 
     } catch (error) {
-        // 全局捕获：一旦代码中有任何错误，立刻在推演台上报红输出，而不是默默死机空白
         console.error("推演台渲染发生阻断性错误:", error);
         let tbody = document.getElementById('draft-tbody');
         if (tbody) {
