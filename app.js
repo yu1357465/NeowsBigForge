@@ -92,10 +92,18 @@ function loadDeckFromDisk(isInitialLoad = false) {
 
     myDeck = [];
 
+    // 【核心修复】：切档前，先强制将环境参数洗白为默认值，杜绝残影
+    let energyInput = document.getElementById('energy-input');
+    let drawInput = document.getElementById('draw-input');
+    if (energyInput) energyInput.value = "3.0";
+    if (drawInput) drawInput.value = "5";
+
     if (savedData) {
         try {
             let state = JSON.parse(savedData);
-            let savedDeck = state.deck || [];
+
+            // 智能嗅探：兼容一维数组旧存档
+            let savedDeck = Array.isArray(state) ? state : (state.deck || []);
 
             // 匹配完整数据字典
             savedDeck.forEach(sc => {
@@ -104,9 +112,12 @@ function loadDeckFromDisk(isInitialLoad = false) {
                 }
             });
 
-            if (state.energy) document.getElementById('energy-input').value = state.energy;
-            if (state.draw) document.getElementById('draw-input').value = state.draw;
-            if (state.job) document.getElementById('job-select').value = state.job;
+            // 如果存档中存在特殊环境参数，则覆盖刚才洗白的默认值
+            if (!Array.isArray(state)) {
+                if (state.energy !== undefined && energyInput) energyInput.value = state.energy;
+                if (state.draw !== undefined && drawInput) drawInput.value = state.draw;
+                if (state.job !== undefined) document.getElementById('job-select').value = state.job;
+            }
 
         } catch (e) {
             console.error("读取存档失败", e);
@@ -114,19 +125,21 @@ function loadDeckFromDisk(isInitialLoad = false) {
     } else {
         // 空存档，下发当前选择职业的初始牌
         let currentJob = document.getElementById('job-select')?.value || 'regent';
-        const template = starterTemplates[currentJob] || [];
-        template.forEach(targetId => {
-            let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
-            let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
-            if (realKey) myDeck.push({ ...allCards[realKey], id: realKey, isUpgraded: false });
-        });
+        if (typeof starterTemplates !== 'undefined' && starterTemplates[currentJob]) {
+            const template = starterTemplates[currentJob];
+            template.forEach(targetId => {
+                let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
+                if (realKey) myDeck.push({ ...allCards[realKey], id: realKey, isUpgraded: false });
+            });
+        }
     }
 
     updateWorkshop();
 
-    // 如果是手动点击撤销读取的，给予视觉反馈
+    // 视觉反馈
     if (!isInitialLoad) {
-        let btn = document.querySelector('button[onclick="loadDeckFromDisk()"]');
+        let btn = document.querySelector('button[onclick^="loadDeckFromDisk"]');
         if(btn) {
             let originalText = btn.innerText;
             btn.innerText = "已重载";
@@ -144,7 +157,8 @@ function commitSaveToDisk() {
 
     let stateToSave = {
         deck: myDeck,
-        energy: parseInt(energy),
+        // 核心修复：必须使用 parseFloat，否则保存时会丢失遗物的小数均值
+        energy: parseFloat(energy),
         draw: parseInt(draw),
         job: job
     };
@@ -152,13 +166,15 @@ function commitSaveToDisk() {
     localStorage.setItem(`sts2_v2_save_${slot}`, JSON.stringify(stateToSave));
 
     let btn = document.querySelector('button[onclick="commitSaveToDisk()"]');
-    let originalText = btn.innerText;
-    btn.innerText = "已保存";
-    btn.style.backgroundColor = "#27ae60";
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.style.backgroundColor = "";
-    }, 1500);
+    if(btn) {
+        let originalText = btn.innerText;
+        btn.innerText = "已保存";
+        btn.style.backgroundColor = "#27ae60";
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.backgroundColor = "";
+        }, 1500);
+    }
 }
 
 // ================= 基础配置与辞典加载 =================
@@ -689,77 +705,99 @@ function renderLibrary() {
     }
 }
 
+// ================= 搜索与筛选系统 (终极防弹版) =================
+
 function filterCards() {
-    const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
-    const classFilter = document.getElementById('class-filter').value;
-    const typeFilter = document.getElementById('type-filter').value;
-    const costFilter = document.getElementById('cost-filter').value;
+    try {
+        const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+        const classFilter = document.getElementById('class-filter').value;
+        const typeFilter = document.getElementById('type-filter').value;
+        const costFilter = document.getElementById('cost-filter').value;
 
-    const cardListContainer = document.getElementById('card-list');
-    cardListContainer.innerHTML = '';
+        const cardListContainer = document.getElementById('card-list');
+        if (!cardListContainer) return;
+        cardListContainer.innerHTML = '';
 
-    let visibleCount = 0;
+        let visibleCount = 0;
 
-    // 假设 allCards 是包含所有卡牌字典的对象
-    Object.keys(allCards).forEach(cardId => {
-        let card = allCards[cardId];
-        let cardName = card.Name_ZHS || cardId;
+        Object.keys(allCards).forEach(cardId => {
+            let card = allCards[cardId];
 
-        // 1. 文本与拼音双核匹配逻辑
-        let textMatch = false;
-        if (searchInput === "") {
-            textMatch = true;
-        } else {
-            // 原生汉字匹配
-            let isNameMatch = cardName.includes(searchInput);
+            // 强转 String，防止极端卡牌数据缺失导致报错中断
+            let cardName = String(card.Name_ZHS || card.name || cardId);
 
-            // 拼音首字母匹配引擎
-            let isPinyinMatch = false;
-            if (typeof pinyinPro !== 'undefined') {
-                // 将汉字转换为首字母数组，如 "大爆炸" -> ['d', 'b', 'z']
-                let pyArray = pinyinPro.pinyin(cardName, { pattern: 'first', type: 'array' });
-                if (pyArray) {
-                    let pyString = pyArray.join(''); // 组合成 "dbz"
-                    isPinyinMatch = pyString.includes(searchInput);
+            // 1. 文本与拼音双核匹配逻辑
+            let textMatch = false;
+            if (searchInput === "") {
+                textMatch = true;
+            } else {
+                let isNameMatch = cardName.toLowerCase().includes(searchInput);
+                let isPinyinMatch = false;
+
+                try {
+                    if (typeof pinyinPro !== 'undefined') {
+                        let pyArray = pinyinPro.pinyin(cardName, { pattern: 'first', type: 'array' });
+                        if (pyArray) {
+                            let pyString = pyArray.join('').toLowerCase();
+                            isPinyinMatch = pyString.includes(searchInput);
+                        }
+                    }
+                } catch(e) {
+                    // 静默忽略拼音报错
+                }
+
+                textMatch = isNameMatch || isPinyinMatch;
+            }
+
+            // 2. 职业匹配逻辑 (翻译官与无色收容所)
+            // 读取图纸中的 Class 字段，并强制转为小写以统一标准
+            let cardClass = String(card.Class || "").toLowerCase();
+            let classMatch = false;
+
+            if (classFilter === 'all') {
+                classMatch = true;
+            } else if (classFilter === 'colorless') {
+                // 排除法：只要不是这5个基础职业，统统算作“无色及其他”（包含 Token, Colorless, Curse 等）
+                const mainClasses = ['ironclad', 'silent', 'regent', 'necrobinder', 'defect'];
+                classMatch = !mainClasses.includes(cardClass);
+            } else {
+                // 精准匹配基础职业
+                classMatch = (cardClass === classFilter);
+            }
+
+            // 3. 类型匹配逻辑
+            let cardType = card.Type || card.type || "";
+            let typeMatch = (typeFilter === 'all') || (cardType === typeFilter);
+
+            // 4. 费用匹配逻辑
+            let costMatch = true;
+            if (costFilter !== 'all') {
+                let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, false) : { cost: parseInt(card.Cost || 0) };
+                let costVal = stats.cost;
+
+                if (costFilter === '3') {
+                    costMatch = (typeof costVal === 'number' && costVal >= 3);
+                } else {
+                    costMatch = (costVal === parseInt(costFilter));
                 }
             }
 
-            textMatch = isNameMatch || isPinyinMatch;
-        }
-
-        // 2. 职业匹配逻辑
-        let classMatch = (classFilter === 'all') || (card.Color === classFilter);
-
-        // 3. 类型匹配逻辑
-        let typeMatch = (typeFilter === 'all') || (card.Type === typeFilter);
-
-        // 4. 费用匹配逻辑
-        let costMatch = true;
-        if (costFilter !== 'all') {
-            let stats = parseCardStats(card, false);
-            let costVal = stats.cost;
-            if (costFilter === '3') {
-                costMatch = (typeof costVal === 'number' && costVal >= 3);
-            } else {
-                costMatch = (costVal === parseInt(costFilter));
+            // 综合判定
+            if (textMatch && classMatch && typeMatch && costMatch) {
+                visibleCount++;
+                let btn = createCardButton(cardId, card, "library");
+                cardListContainer.appendChild(btn);
             }
+        });
+
+        // 更新数量
+        let countBadge = document.getElementById('card-count');
+        if (countBadge) {
+            countBadge.innerText = visibleCount;
         }
 
-        // 综合判定：全部满足才展示
-        if (textMatch && classMatch && typeMatch && costMatch) {
-            visibleCount++;
-
-            // 此处调用你原本生成卡牌DOM的函数
-            // 注意：如果你的 createCardButton 参数不同，请保持你原来的写法
-            let btn = createCardButton(cardId, card, "library");
-            cardListContainer.appendChild(btn);
-        }
-    });
-
-    // 更新顶部显示的卡牌数量
-    let countBadge = document.getElementById('card-count');
-    if (countBadge) {
-        countBadge.innerText = visibleCount;
+    } catch (error) {
+        console.error("筛选引擎发生阻断性错误:", error);
     }
 }
 
