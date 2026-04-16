@@ -461,9 +461,6 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         engText.innerText = `${dPct.toFixed(0)}% 过牌 | ${ePct.toFixed(0)}% 压缩`;
     }
 
-    const TARGET_SLOTS = {
-        "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": 10
-    };
 
     let tagCounts = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
     let tagCardNames = { "过渡输出": [], "过渡防御": [], "终端输出": [], "终端防御": [], "润滑运转": [] };
@@ -480,6 +477,19 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
             });
         }
     });
+
+    // --- 改动后的新代码开始 (动态计算润滑运转目标) ---
+    let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
+    // 基础运转需求为 4，每多一张终端牌，额外需要 1.5 张过牌/压缩牌来稀释
+    let dynamicDrawTarget = 4 + Math.ceil(terminalCardCount * 1.5);
+
+    const TARGET_SLOTS = {
+        "过渡输出": 5,
+        "过渡防御": 8,
+        "终端输出": 3,
+        "终端防御": 4,
+        "润滑运转": dynamicDrawTarget
+    };
 
     const portContainer = document.getElementById('port-summary-container');
     if (portContainer) {
@@ -585,9 +595,6 @@ function updateDrafts() {
             let score = 0;
             let matchReasons = [];
 
-            // 必须在函数开头或此处定义目标常量，确保能读取到
-            const TARGET_SLOTS_REF = { "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": 10 };
-
             savedInfo.tags.forEach(tag => {
                 let currentCount = deckTagsCount[tag] || 0;
                 let targetCount = TARGET_SLOTS_REF[tag] || 5;
@@ -607,6 +614,19 @@ function updateDrafts() {
                     matchReasons.push(`[平滑] 顺滑融入(${tag})`);
                 }
             });
+
+            // --- 改动后的新代码开始 (动态计算润滑运转目标) ---
+            let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
+            // 基础运转需求为 4，每多一张终端牌，额外需要 1.5 张过牌/压缩牌来稀释
+            let dynamicDrawTarget = 4 + Math.ceil(terminalCardCount * 1.5);
+
+            const TARGET_SLOTS = {
+                "过渡输出": 5,
+                "过渡防御": 8,
+                "终端输出": 3,
+                "终端防御": 4,
+                "润滑运转": dynamicDrawTarget
+            };
 
             if (savedInfo.tier === "S") score += 40;
             if (savedInfo.tier === "A") score += 20;
