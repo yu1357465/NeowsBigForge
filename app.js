@@ -471,24 +471,34 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         AVAILABLE_TAGS.forEach(tag => {
             let current = tagCounts[tag];
             let target = TARGET_SLOTS[tag];
-            let statusColor = current === 0 ? "#e74c3c" : (current > target ? "#f39c12" : "#27ae60");
-            let statusText = current === 0 ? "急缺" : (current > target ? "冗余" : "良好");
+            let pct = Math.min((current / target) * 100, 100);
+
+            // 严谨的状态判定
+            let isOverflow = current > target;
+            let statusColor = current === 0 ? "#e74c3c" : (isOverflow ? "#e67e22" : (current === target ? "#27ae60" : "#3498db"));
+            let statusText = current === 0 ? "[急缺]" : (isOverflow ? `[超载 +${current - target}]` : "[积累中]");
+            if (current > 0 && current === target) statusText = "[完美成型]";
+
             let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "无";
 
             let div = document.createElement('div');
-            div.style.background = "#f8f9fa"; div.style.padding = "6px 10px"; div.style.borderRadius = "6px"; div.style.borderLeft = `4px solid ${statusColor}`;
+            div.style.marginBottom = "10px";
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                    <strong style="color:#333;">${tag}</strong>
-                    <span style="color:${statusColor}; font-weight:bold;">${current} / ${target} 牌位 (${statusText})</span>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.85rem;">
+                    <strong style="color:#333;">${tag} <span style="color:${statusColor}; font-weight:normal; font-size:0.75rem;">${statusText}</span></strong>
+                    <span style="color:#666; font-weight:bold;">${current} / ${target}</span>
                 </div>
-                <div style="color:#888; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">包含: ${cardListStr}</div>
+                <div class="port-bar" style="background:#eef0eb; height:10px; border-radius:5px; overflow:hidden;">
+                    <div class="port-fill" style="height:100%; width:${pct}%; background-color:${statusColor}; transition:width 0.3s;"></div>
+                </div>
+                <div style="color:#888; font-size:0.75rem; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">包含: ${cardListStr}</div>
             `;
             portContainer.appendChild(div);
         });
     }
 }
 
+// 位置：app.js
 // ================= 标签协同推演台 =================
 function updateDrafts() {
     let tbody = document.getElementById('draft-tbody');
@@ -523,6 +533,13 @@ function updateDrafts() {
 
     let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
 
+    // --- 改动后的新代码开始 (计算能量冗余度，用于后续的高费牌判定) ---
+    const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
+    const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
+    let expectedEnergySpend = currentAvgCost * baseDrawInput;
+    let energyRedundancy = baseEnergyInput - expectedEnergySpend;
+    // --- 改动后的新代码结束 ---
+
     myDrafts.forEach((draftCard, index) => {
         let tr = document.createElement('tr');
         tr.style.borderBottom = "1px dashed #e0e4d8";
@@ -552,14 +569,27 @@ function updateDrafts() {
             let score = 0;
             let matchReasons = [];
 
+            // 必须在函数开头或此处定义目标常量，确保能读取到
+            const TARGET_SLOTS_REF = { "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": 10 };
+
             savedInfo.tags.forEach(tag => {
                 let currentCount = deckTagsCount[tag] || 0;
-                let density = deckSize > 0 ? currentCount / deckSize : 0;
+                let targetCount = TARGET_SLOTS_REF[tag] || 5;
 
-                if (currentCount === 0) { score += 50; matchReasons.push(`雪中送炭(缺${tag})`); }
-                else if (density < 0.15) { score += 30; matchReasons.push(`补强缺口(${tag})`); }
-                else if (density > 0.35) { score -= 20; matchReasons.push(`冗余(${tag})`); }
-                else { score += 10; }
+                // 放弃虚无缥缈的密度占比，直接进行严苛的阈值校验
+                if (currentCount >= targetCount) {
+                    score -= 40; // 绝对降权
+                    matchReasons.push(`[满载] 停止抓取(${tag})`);
+                } else if (currentCount === 0) {
+                    score += 50;
+                    matchReasons.push(`[急缺] 必须补齐(${tag})`);
+                } else if (currentCount < targetCount * 0.5) {
+                    score += 30;
+                    matchReasons.push(`[短板] 重点补强(${tag})`);
+                } else {
+                    score += 10;
+                    matchReasons.push(`[平滑] 顺滑融入(${tag})`);
+                }
             });
 
             if (savedInfo.tier === "S") score += 40;
@@ -584,13 +614,27 @@ function updateDrafts() {
         let newAvgCost = (deckSize + 1 > 0) ? ((currentTotalEnergyCost + draftCardCost) / (deckSize + 1)) : 0;
         let deltaCost = newAvgCost - currentAvgCost;
 
+        // --- 改动后的新代码开始 ---
         if (deltaCost > 0.03) {
-            tdLoad.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#e74c3c;">变卡手</span>`;
+            if (energyRedundancy >= 0.8) {
+                // 当能量处于溢出状态时，所有拉高均费的牌都视为正向吸收
+                if (draftCardCost >= 2) {
+                    tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 深度吸收溢出</span>`;
+                } else {
+                    // 对于 1 费等低费牌，同样给予绿色正向反馈，区别于高费牌的文案
+                    tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 平滑吸收溢出</span>`;
+                }
+            } else {
+                // 只有在能量不富裕的情况下，拉高均费才会触发真正的红字警告
+                tdLoad.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#e74c3c;">[-] 增加卡手风险</span>`;
+            }
         } else if (deltaCost < -0.03) {
-            tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">变流畅</span>`;
+            tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 均费下降变流畅</span>`;
         } else {
-            tdLoad.innerHTML = `<span style="color:#7f8c8d;">${deltaCost > 0 ? '+' : ''}${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#999;">无影响</span>`;
+            tdLoad.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">${deltaCost > 0 ? '+' : ''}${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#999;">[=] 负载无变化</span>`;
         }
+        // --- 改动后的新代码结束 ---
+
         tr.appendChild(tdLoad);
 
         let tdAction = document.createElement('td');
