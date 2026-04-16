@@ -732,5 +732,63 @@ function clearDrafts() {
     }
 }
 
+// ================= 数据持久化备份引擎 =================
+
+// 导出字典：将本地存储中的鉴定数据打包成 JSON 文件下载
+function exportDictionary() {
+    const dict = localStorage.getItem('SpireV2_Dictionary');
+    if (!dict || dict === '{}') {
+        alert("当前字典为空，无需备份。");
+        return;
+    }
+
+    // 创建 Blob 对象，模拟文件数据
+    const blob = new Blob([dict], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // 创建虚拟链接并触发下载
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NeowsBigForge_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+
+    // 清理临时资源
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// 导入字典：读取上传的 JSON 文件并合并/覆盖当前本地存储
+function importDictionary(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // 简单校验格式是否正确
+            if (typeof importedData !== 'object') throw new Error("无效的字典格式");
+
+            if (confirm("导入将覆盖当前浏览器的鉴定数据，确定继续吗？")) {
+                localStorage.setItem('SpireV2_Dictionary', JSON.stringify(importedData));
+
+                // 重新加载页面变量并刷新 UI
+                cardDictionary = importedData;
+                renderLibrary();
+                updateWorkshop();
+                alert("导入成功！已同步最新鉴定方案。");
+            }
+        } catch (err) {
+            alert("导入失败：请确保文件是正确的 JSON 备份。");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+    // 重置 input，允许重复导入相同文件
+    event.target.value = '';
+}
+
 // 启动引擎
 loadCards();

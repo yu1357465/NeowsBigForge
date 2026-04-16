@@ -123,6 +123,11 @@
 
 <div id="port-panel" class="panel">
     <h2>定性分析仪表盘</h2>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button class="action-btn" style="background-color: #636e72; font-size: 0.8rem;" onclick="exportDictionary()">导出字典备份</button>
+        <button class="action-btn" style="background-color: #636e72; font-size: 0.8rem;" onclick="document.getElementById('import-input').click()">导入字典备份</button>
+        <input type="file" id="import-input" style="display: none;" accept=".json" onchange="importDictionary(event)">
+    </div>
 
     <div class="port-item">
         <div class="port-label"><span>平均能量负载</span><span id="energy-text">0 / 3</span></div>

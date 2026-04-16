@@ -1,0 +1,8 @@
+@echo off
+title 启动 NeowsBigForge 沙盘
+echo 正在为你拉起沙盘环境...
+
+:: 🎯 核心魔法：调用 Edge 浏览器，并强行开启“允许读取本地文件”的特权
+start msedge.exe --allow-file-access-from-files "%~dp0index.html"
+
+exit
