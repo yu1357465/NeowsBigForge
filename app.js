@@ -525,195 +525,207 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
 }
 
 // 位置：app.js
-// ================= 标签协同推演台 =================
+// ================= 标签协同推演台 (全量防弹版) =================
 function updateDrafts() {
-    let tbody = document.getElementById('draft-tbody');
-    let tip = document.getElementById('draft-empty-tip');
-    if (!tbody) return;
+    try {
+        let tbody = document.getElementById('draft-tbody');
+        let tip = document.getElementById('draft-empty-tip');
+        if (!tbody) return;
 
-    tbody.innerHTML = '';
-    if (myDrafts.length === 0) {
-        if(tip) tip.style.display = 'block';
-        return;
-    }
-    if(tip) tip.style.display = 'none';
+        // 清空内容
+        tbody.innerHTML = '';
 
-    let deckSize = myDeck.length;
-    let deckTagsCount = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
-    let currentTotalEnergyCost = 0;
-
-    myDeck.forEach(card => {
-        let info = cardDictionary[card.id];
-        if (info && info.tags) {
-            info.tags.forEach(t => {
-                if (deckTagsCount[t] !== undefined) deckTagsCount[t]++;
-            });
+        // 如果真没有牌，显示提示并正常退出
+        if (myDrafts.length === 0) {
+            if(tip) tip.style.display = 'block';
+            return;
         }
+        // 如果有牌，隐藏提示框
+        if(tip) tip.style.display = 'none';
 
-        let stats = parseCardStats(card, card.isUpgraded);
-        // 不再排除基础牌
-        if (typeof stats.cost === 'number' && stats.cost >= 0) {
-            currentTotalEnergyCost += stats.cost;
-        }
-    });
+        let deckSize = myDeck.length;
+        let deckTagsCount = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
+        let currentTotalEnergyCost = 0;
 
-    let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
+        // 1. 统计当前卡组状态
+        myDeck.forEach(card => {
+            let info = cardDictionary[card.id];
+            if (info && info.tags) {
+                info.tags.forEach(t => {
+                    if (deckTagsCount[t] !== undefined) deckTagsCount[t]++;
+                });
+            }
 
-    // --- 改动后的新代码开始 (计算能量冗余度，用于后续的高费牌判定) ---
-    const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
-    const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
-    let expectedEnergySpend = currentAvgCost * baseDrawInput;
-    let energyRedundancy = baseEnergyInput - expectedEnergySpend;
-    // --- 改动后的新代码结束 ---
+            let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, card.isUpgraded) : { cost: 0 };
+            if (typeof stats.cost === 'number' && stats.cost >= 0) {
+                currentTotalEnergyCost += stats.cost;
+            }
+        });
 
-    myDrafts.forEach((draftCard, index) => {
-        let tr = document.createElement('tr');
-        tr.style.borderBottom = "1px dashed #e0e4d8";
+        // 2. 准备全局运算参数（能量溢出判断）
+        let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
+        const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
+        const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
+        let expectedEnergySpend = currentAvgCost * baseDrawInput;
+        let energyRedundancy = baseEnergyInput - expectedEnergySpend;
 
-        let tdCard = document.createElement('td');
-        tdCard.style.padding = "4px 2px";
-        tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
-        tr.appendChild(tdCard);
+        // 3. 准备全局运算参数（启动负重惩罚动态目标）
+        let terminalCountInDeck = (deckTagsCount["终端输出"] || 0) + (deckTagsCount["终端防御"] || 0);
+        let dynamicDrawTargetRef = 4 + Math.ceil(terminalCountInDeck * 1.5);
 
-        let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
-        let tdTags = document.createElement('td');
-        tdTags.style.padding = "6px 4px";
-        let tierColor = savedInfo.tier === "S" ? "#ff9f43" : (savedInfo.tier === "A" ? "#ee5253" : (savedInfo.tier === "F" ? "#7f8c8d" : "#2980b9"));
-        let tierHtml = savedInfo.tier !== "-" && savedInfo.tier !== "" ? `<span style="color:${tierColor}; font-weight:bold;">[${savedInfo.tier}级]</span><br>` : "";
-        let tagsHtml = savedInfo.tags.length > 0 ? savedInfo.tags.join(" | ") : "<span style='color:#999'>暂无标签</span>";
-        tdTags.innerHTML = `${tierHtml}${tagsHtml}`;
-        tr.appendChild(tdTags);
+        const TARGET_SLOTS_REF = {
+            "过渡输出": 5,
+            "过渡防御": 8,
+            "终端输出": 3,
+            "终端防御": 4,
+            "润滑运转": dynamicDrawTargetRef
+        };
 
-        let tdEval = document.createElement('td');
-        tdEval.style.padding = "6px 4px";
+        // 4. 开始渲染候选卡牌列
+        myDrafts.forEach((draftCard, index) => {
+            let tr = document.createElement('tr');
+            tr.style.borderBottom = "1px dashed #e0e4d8";
 
-        if (savedInfo.tags.length === 0 && savedInfo.tier === "-") {
-            tdEval.innerHTML = `<span style="color:#e74c3c;">未鉴定</span>`;
-        } else if (savedInfo.tier === "F") {
-            tdEval.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">严重污染</span><br><span style="font-size:0.8rem; color:#666;">F级废牌</span>`;
-        } else {
-            let score = 0;
-            let matchReasons = [];
+            // -- 第一列：卡牌按钮 --
+            let tdCard = document.createElement('td');
+            tdCard.style.padding = "4px 2px";
+            tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
+            tr.appendChild(tdCard);
 
-            savedInfo.tags.forEach(tag => {
-                let currentCount = deckTagsCount[tag] || 0;
-                let targetCount = TARGET_SLOTS_REF[tag] || 5;
+            // 【防御性修复】：强制预设空数组，防止未鉴定牌或残缺字典导致报错崩溃
+            let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
+            if (!savedInfo.tags) savedInfo.tags = [];
 
-                // 放弃虚无缥缈的密度占比，直接进行严苛的阈值校验
-                if (currentCount >= targetCount) {
-                    score -= 40; // 绝对降权
-                    matchReasons.push(`[满载] 停止抓取(${tag})`);
-                } else if (currentCount === 0) {
-                    score += 50;
-                    matchReasons.push(`[急缺] 必须补齐(${tag})`);
-                } else if (currentCount < targetCount * 0.5) {
-                    score += 30;
-                    matchReasons.push(`[短板] 重点补强(${tag})`);
+            // -- 第二列：卡牌定位标签 --
+            let tdTags = document.createElement('td');
+            tdTags.style.padding = "6px 4px";
+            let tierColor = savedInfo.tier === "S" ? "#ff9f43" : (savedInfo.tier === "A" ? "#ee5253" : (savedInfo.tier === "F" ? "#7f8c8d" : "#2980b9"));
+            let tierHtml = savedInfo.tier !== "-" && savedInfo.tier !== "" ? `<span style="color:${tierColor}; font-weight:bold;">[${savedInfo.tier}级]</span><br>` : "";
+            let tagsHtml = savedInfo.tags.length > 0 ? savedInfo.tags.join(" | ") : "<span style='color:#999'>暂无标签</span>";
+            tdTags.innerHTML = `${tierHtml}${tagsHtml}`;
+            tr.appendChild(tdTags);
+
+            // -- 第三列：协同分析 --
+            let tdEval = document.createElement('td');
+            tdEval.style.padding = "6px 4px";
+
+            if (savedInfo.tags.length === 0 && savedInfo.tier === "-") {
+                tdEval.innerHTML = `<span style="color:#e74c3c;">未鉴定</span>`;
+            } else if (savedInfo.tier === "F") {
+                tdEval.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">严重污染</span><br><span style="font-size:0.8rem; color:#666;">F级废牌</span>`;
+            } else {
+                let score = 0;
+                let matchReasons = [];
+
+                savedInfo.tags.forEach(tag => {
+                    let currentCount = deckTagsCount[tag] || 0;
+                    let targetCount = TARGET_SLOTS_REF[tag] || 5;
+
+                    if (currentCount >= targetCount) {
+                        score -= 40;
+                        matchReasons.push(`[满载] 停止抓取(${tag})`);
+                    } else if (currentCount === 0) {
+                        score += 50;
+                        matchReasons.push(`[急缺] 必须补齐(${tag})`);
+                    } else if (currentCount < targetCount * 0.5) {
+                        score += 30;
+                        matchReasons.push(`[短板] 重点补强(${tag})`);
+                    } else {
+                        score += 10;
+                        matchReasons.push(`[平滑] 顺滑融入(${tag})`);
+                    }
+                });
+
+                if (savedInfo.tier === "S") score += 40;
+                if (savedInfo.tier === "A") score += 20;
+                if (savedInfo.tier === "C") score -= 20;
+
+                if (score >= 60) tdEval.innerHTML = `<span style="color:#27ae60; font-weight:bold;">完美拼图</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
+                else if (score >= 30) tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">顺滑融入</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.length > 0 ? matchReasons.join(", ") : "平滑过渡"}</span>`;
+                else if (score < 0) tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold;">体系冲突</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
+                else tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">收益平庸</span><br><span style="font-size:0.8rem; color:#666;">同位替代</span>`;
+            }
+            tr.appendChild(tdEval);
+
+            // -- 第四列：负载影响计算 --
+            let tdLoad = document.createElement('td');
+            tdLoad.style.padding = "6px 4px";
+            tdLoad.style.textAlign = "center";
+
+            let dStats = (typeof parseCardStats === 'function') ? parseCardStats(draftCard, draftCard.isUpgraded) : { cost: 0 };
+            let draftCardCost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
+
+            let newAvgCost = (deckSize + 1 > 0) ? ((currentTotalEnergyCost + draftCardCost) / (deckSize + 1)) : 0;
+            let deltaCost = newAvgCost - currentAvgCost;
+
+            if (deltaCost > 0.03) {
+                if (energyRedundancy >= 0.8) {
+                    if (draftCardCost >= 2) {
+                        tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 深度吸收溢出</span>`;
+                    } else {
+                        tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 平滑吸收溢出</span>`;
+                    }
                 } else {
-                    score += 10;
-                    matchReasons.push(`[平滑] 顺滑融入(${tag})`);
+                    tdLoad.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#e74c3c;">[-] 增加卡手风险</span>`;
                 }
-            });
+            } else if (deltaCost < -0.03) {
+                tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 均费下降变流畅</span>`;
+            } else {
+                tdLoad.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">${deltaCost > 0 ? '+' : ''}${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#999;">[=] 负载无变化</span>`;
+            }
+            tr.appendChild(tdLoad);
 
-            // --- 改动后的新代码开始 (动态计算润滑运转目标) ---
-            let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
-            // 基础运转需求为 4，每多一张终端牌，额外需要 1.5 张过牌/压缩牌来稀释
-            let dynamicDrawTarget = 4 + Math.ceil(terminalCardCount * 1.5);
+            // -- 第五列：操作动作 --
+            let tdAction = document.createElement('td');
+            tdAction.style.textAlign = "center";
 
-            const TARGET_SLOTS = {
-                "过渡输出": 5,
-                "过渡防御": 8,
-                "终端输出": 3,
-                "终端防御": 4,
-                "润滑运转": dynamicDrawTarget
+            let addBtn = document.createElement('button');
+            addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+            addBtn.title = "直接加入卡组";
+
+            addBtn.style.cssText = `
+                border: 1px solid #e0e4d8; background: transparent; color: #aab2b8; 
+                border-radius: 6px; width: 30px; height: 30px; 
+                cursor: pointer; display: flex; align-items: center; justify-content: center;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto;
+            `;
+
+            addBtn.onmouseover = () => {
+                addBtn.style.background = "#27ae60";
+                addBtn.style.color = "white";
+                addBtn.style.border = "1px solid #27ae60";
+                addBtn.style.transform = "scale(1.15)";
+                addBtn.style.boxShadow = "0 4px 10px rgba(39, 174, 96, 0.3)";
             };
 
-            if (savedInfo.tier === "S") score += 40;
-            if (savedInfo.tier === "A") score += 20;
-            if (savedInfo.tier === "C") score -= 20;
+            addBtn.onmouseout = () => {
+                addBtn.style.background = "transparent";
+                addBtn.style.color = "#aab2b8";
+                addBtn.style.border = "1px solid #e0e4d8";
+                addBtn.style.transform = "scale(1)";
+                addBtn.style.boxShadow = "none";
+            };
 
-            if (score >= 60) tdEval.innerHTML = `<span style="color:#27ae60; font-weight:bold;">完美拼图</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
-            else if (score >= 30) tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">顺滑融入</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.length > 0 ? matchReasons.join(", ") : "平滑过渡"}</span>`;
-            else if (score < 0) tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold;">体系冲突</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
-            else tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">收益平庸</span><br><span style="font-size:0.8rem; color:#666;">同位替代</span>`;
+            addBtn.onclick = () => {
+                let cardToGrab = JSON.parse(JSON.stringify(draftCard));
+                myDeck.push(cardToGrab);
+                updateWorkshop();
+            };
+
+            tdAction.appendChild(addBtn);
+            tr.appendChild(tdAction);
+
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        // 全局捕获：一旦代码中有任何错误，立刻在推演台上报红输出，而不是默默死机空白
+        console.error("推演台渲染发生阻断性错误:", error);
+        let tbody = document.getElementById('draft-tbody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="color:#e74c3c; font-weight:bold; text-align:center; padding: 20px;">系统检测到严重错误，推演台引擎已停止运行。<br>请按 F12 打开控制台查看错误详情。</td></tr>`;
         }
-        tr.appendChild(tdEval);
-
-        let tdLoad = document.createElement('td');
-        tdLoad.style.padding = "6px 4px";
-        tdLoad.style.textAlign = "center";
-
-        let dStats = parseCardStats(draftCard, draftCard.isUpgraded);
-        let draftCardCost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
-
-        // 模拟加入这张牌后的总费用和总张数
-        let newAvgCost = (deckSize + 1 > 0) ? ((currentTotalEnergyCost + draftCardCost) / (deckSize + 1)) : 0;
-        let deltaCost = newAvgCost - currentAvgCost;
-
-        // --- 改动后的新代码开始 ---
-        if (deltaCost > 0.03) {
-            if (energyRedundancy >= 0.8) {
-                // 当能量处于溢出状态时，所有拉高均费的牌都视为正向吸收
-                if (draftCardCost >= 2) {
-                    tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 深度吸收溢出</span>`;
-                } else {
-                    // 对于 1 费等低费牌，同样给予绿色正向反馈，区别于高费牌的文案
-                    tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 平滑吸收溢出</span>`;
-                }
-            } else {
-                // 只有在能量不富裕的情况下，拉高均费才会触发真正的红字警告
-                tdLoad.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">+${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#e74c3c;">[-] 增加卡手风险</span>`;
-            }
-        } else if (deltaCost < -0.03) {
-            tdLoad.innerHTML = `<span style="color:#27ae60; font-weight:bold;">${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#27ae60;">[+] 均费下降变流畅</span>`;
-        } else {
-            tdLoad.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">${deltaCost > 0 ? '+' : ''}${deltaCost.toFixed(2)}</span><br><span style="font-size:0.75rem; color:#999;">[=] 负载无变化</span>`;
-        }
-        // --- 改动后的新代码结束 ---
-
-        tr.appendChild(tdLoad);
-
-        let tdAction = document.createElement('td');
-        tdAction.style.textAlign = "center";
-
-        let addBtn = document.createElement('button');
-        addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-        addBtn.title = "直接加入卡组";
-
-        addBtn.style.cssText = `
-            border: 1px solid #e0e4d8; background: transparent; color: #aab2b8; 
-            border-radius: 6px; width: 30px; height: 30px; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto;
-        `;
-
-        addBtn.onmouseover = () => {
-            addBtn.style.background = "#27ae60";
-            addBtn.style.color = "white";
-            addBtn.style.border = "1px solid #27ae60";
-            addBtn.style.transform = "scale(1.15)";
-            addBtn.style.boxShadow = "0 4px 10px rgba(39, 174, 96, 0.3)";
-        };
-
-        addBtn.onmouseout = () => {
-            addBtn.style.background = "transparent";
-            addBtn.style.color = "#aab2b8";
-            addBtn.style.border = "1px solid #e0e4d8";
-            addBtn.style.transform = "scale(1)";
-            addBtn.style.boxShadow = "none";
-        };
-
-        addBtn.onclick = () => {
-            let cardToGrab = JSON.parse(JSON.stringify(draftCard));
-            myDeck.push(cardToGrab);
-            updateWorkshop();
-        };
-
-        tdAction.appendChild(addBtn);
-        tr.appendChild(tdAction);
-
-        tbody.appendChild(tr);
-    });
+    }
 }
 
 // ================= 卡牌图纸库渲染 =================
