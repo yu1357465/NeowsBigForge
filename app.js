@@ -499,11 +499,33 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
             let target = TARGET_SLOTS[tag];
             let pct = Math.min((current / target) * 100, 100);
 
-            // 严谨的状态判定
+            // --- 改动后的新代码开始 (硬核防暴毙预警系统) ---
+            let pctRatio = current / target;
             let isOverflow = current > target;
-            let statusColor = current === 0 ? "#e74c3c" : (isOverflow ? "#e67e22" : (current === target ? "#27ae60" : "#3498db"));
-            let statusText = current === 0 ? "[急缺]" : (isOverflow ? `[超载 +${current - target}]` : "[积累中]");
-            if (current > 0 && current === target) statusText = "[完美成型]";
+            let statusColor, statusText;
+
+            if (current === 0) {
+                statusColor = "#e74c3c"; // 猩红
+                statusText = "[致命空缺]";
+            } else if (isOverflow) {
+                statusColor = "#e67e22"; // 橙色
+                statusText = `[冗余卡手 +${current - target}]`;
+            } else if (pctRatio < 0.5) {
+                // 核心改动：完成度不到 50% 时，触发深红色高危警报
+                statusColor = "#c0392b";
+                statusText = "[高危断档]";
+            } else if (pctRatio < 0.8) {
+                // 完成度在 50%~80% 之间，触发橘黄色迟缓警报
+                statusColor = "#f39c12";
+                statusText = "[运转迟缓]";
+            } else if (current === target) {
+                statusColor = "#27ae60"; // 绿色
+                statusText = "[完美成型]";
+            } else {
+                statusColor = "#3498db"; // 蓝色：只有大于80%且没满，才配叫平滑积累
+                statusText = "[平滑积累]";
+            }
+            // --- 改动后的新代码结束 ---
 
             let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "无";
 
