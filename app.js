@@ -642,19 +642,23 @@ function updateDrafts() {
                 savedInfo.tags.forEach(tag => {
                     let currentCount = deckTagsCount[tag] || 0;
                     let targetCount = TARGET_SLOTS_REF[tag] || 5;
+                    let pctRatio = currentCount / targetCount;
 
-                    if (currentCount >= targetCount) {
-                        score -= 40;
-                        matchReasons.push(`[满载] 停止抓取(${tag})`);
-                    } else if (currentCount === 0) {
-                        score += 50;
-                        matchReasons.push(`[急缺] 必须补齐(${tag})`);
-                    } else if (currentCount < targetCount * 0.5) {
-                        score += 30;
-                        matchReasons.push(`[短板] 重点补强(${tag})`);
+                    if (currentCount === 0) {
+                        score += 80; // 保命级权重：极高加分
+                        matchReasons.push(`[救命] 填补致命空缺(${tag})`);
+                    } else if (currentCount >= targetCount) {
+                        score -= 100; // 毁灭级惩罚：一票否决，直接抹杀 S 级光环
+                        matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
+                    } else if (pctRatio < 0.5) {
+                        score += 50; // 高危抢救
+                        matchReasons.push(`[抢救] 挽救高危断档(${tag})`);
+                    } else if (pctRatio < 0.8) {
+                        score += 20; // 迟缓补强
+                        matchReasons.push(`[润滑] 缓解运转迟缓(${tag})`);
                     } else {
-                        score += 10;
-                        matchReasons.push(`[平滑] 顺滑融入(${tag})`);
+                        score += 5;  // 接近成型时，收益边际递减，不再鼓励多拿
+                        matchReasons.push(`[微调] 趋近完美成型(${tag})`);
                     }
                 });
 
@@ -662,10 +666,16 @@ function updateDrafts() {
                 if (savedInfo.tier === "A") score += 20;
                 if (savedInfo.tier === "C") score -= 20;
 
-                if (score >= 60) tdEval.innerHTML = `<span style="color:#27ae60; font-weight:bold;">完美拼图</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
-                else if (score >= 30) tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">顺滑融入</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.length > 0 ? matchReasons.join(", ") : "平滑过渡"}</span>`;
-                else if (score < 0) tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold;">体系冲突</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join(", ")}</span>`;
-                else tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">收益平庸</span><br><span style="font-size:0.8rem; color:#666;">同位替代</span>`;
+                if (score >= 80) {
+                    tdEval.innerHTML = `<span style="color:#27ae60; font-weight:bold;">[绝对核心]</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join("<br>")}</span>`;
+                } else if (score >= 40) {
+                    tdEval.innerHTML = `<span style="color:#2980b9; font-weight:bold;">[优质补强]</span><br><span style="font-size:0.8rem; color:#666;">${matchReasons.join("<br>")}</span>`;
+                } else if (score < 0) {
+                    // 只要跌破 0 分，直接亮出最高级别红牌警告
+                    tdEval.innerHTML = `<span style="color:#c0392b; font-weight:bold; font-size:1.1rem;">[系统警告]</span><br><span style="font-size:0.8rem; color:#c0392b; font-weight:bold;">${matchReasons.join("<br>")}</span>`;
+                } else {
+                    tdEval.innerHTML = `<span style="color:#f39c12; font-weight:bold;">[收益平庸]</span><br><span style="font-size:0.8rem; color:#666;">非必要抓取</span>`;
+                }
             }
             tr.appendChild(tdEval);
 
