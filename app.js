@@ -689,44 +689,78 @@ function renderLibrary() {
     }
 }
 
-// ================= 全能过滤系统 =================
 function filterCards() {
-    let searchText = document.getElementById('search-input').value.toLowerCase();
-    let classFilter = document.getElementById('class-filter')?.value || 'all';
-    let typeFilter = document.getElementById('type-filter')?.value || 'all';
-    let costFilter = document.getElementById('cost-filter')?.value || 'all';
+    const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+    const classFilter = document.getElementById('class-filter').value;
+    const typeFilter = document.getElementById('type-filter').value;
+    const costFilter = document.getElementById('cost-filter').value;
 
-    let cards = document.querySelectorAll('.lib-card');
+    const cardListContainer = document.getElementById('card-list');
+    cardListContainer.innerHTML = '';
+
     let visibleCount = 0;
 
-    cards.forEach(card => {
-        let matchName = card.dataset.name.includes(searchText) || card.dataset.id.includes(searchText);
-        let matchClass = (classFilter === 'all') || (card.dataset.cardClass === classFilter);
-        let matchType = (typeFilter === 'all') || (card.dataset.type === typeFilter.toLowerCase());
+    // 假设 allCards 是包含所有卡牌字典的对象
+    Object.keys(allCards).forEach(cardId => {
+        let card = allCards[cardId];
+        let cardName = card.Name_ZHS || cardId;
 
-        let cardCost = card.dataset.cost;
-        let matchCost = false;
-
-        if (costFilter === 'all') {
-            matchCost = true;
-        } else if (costFilter === '3+') {
-            matchCost = (parseInt(cardCost) >= 3);
-        } else if (costFilter === 'X') {
-            matchCost = (cardCost === 'X' || cardCost === 'unplayable' || parseInt(cardCost) === -1);
+        // 1. 文本与拼音双核匹配逻辑
+        let textMatch = false;
+        if (searchInput === "") {
+            textMatch = true;
         } else {
-            matchCost = (cardCost == costFilter);
+            // 原生汉字匹配
+            let isNameMatch = cardName.includes(searchInput);
+
+            // 拼音首字母匹配引擎
+            let isPinyinMatch = false;
+            if (typeof pinyinPro !== 'undefined') {
+                // 将汉字转换为首字母数组，如 "大爆炸" -> ['d', 'b', 'z']
+                let pyArray = pinyinPro.pinyin(cardName, { pattern: 'first', type: 'array' });
+                if (pyArray) {
+                    let pyString = pyArray.join(''); // 组合成 "dbz"
+                    isPinyinMatch = pyString.includes(searchInput);
+                }
+            }
+
+            textMatch = isNameMatch || isPinyinMatch;
         }
 
-        if (matchName && matchClass && matchType && matchCost) {
-            card.style.display = 'inline-block';
+        // 2. 职业匹配逻辑
+        let classMatch = (classFilter === 'all') || (card.Color === classFilter);
+
+        // 3. 类型匹配逻辑
+        let typeMatch = (typeFilter === 'all') || (card.Type === typeFilter);
+
+        // 4. 费用匹配逻辑
+        let costMatch = true;
+        if (costFilter !== 'all') {
+            let stats = parseCardStats(card, false);
+            let costVal = stats.cost;
+            if (costFilter === '3') {
+                costMatch = (typeof costVal === 'number' && costVal >= 3);
+            } else {
+                costMatch = (costVal === parseInt(costFilter));
+            }
+        }
+
+        // 综合判定：全部满足才展示
+        if (textMatch && classMatch && typeMatch && costMatch) {
             visibleCount++;
-        } else {
-            card.style.display = 'none';
+
+            // 此处调用你原本生成卡牌DOM的函数
+            // 注意：如果你的 createCardButton 参数不同，请保持你原来的写法
+            let btn = createCardButton(cardId, card, "library");
+            cardListContainer.appendChild(btn);
         }
     });
 
-    let countEl = document.getElementById('card-count');
-    if (countEl) countEl.innerText = visibleCount;
+    // 更新顶部显示的卡牌数量
+    let countBadge = document.getElementById('card-count');
+    if (countBadge) {
+        countBadge.innerText = visibleCount;
+    }
 }
 
 // ================= 全局系统启动 =================
