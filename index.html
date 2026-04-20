@@ -21,17 +21,22 @@
 <div id="library-panel" class="panel">
     <h2>卡牌图纸库 (显示: <span id="card-count" class="stat-badge">0</span>)</h2>
 
-    <div style="background: #ffffff; border: 1px solid #e0e4d8; border-radius: 8px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);"
-         ondragover="event.preventDefault()"
-         ondrop="dropToDraft(event)">
-
+    <div style="background: #ffffff; border: 1px solid #e0e4d8; border-radius: 8px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
         <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; border-bottom: 1px dashed #e0e4d8; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span>抓牌推演台 (端口匹配分析)</span>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <span style="font-size: 0.8rem; color: #2980b9; font-weight: bold;">右键库中卡牌进行【鉴定打标】</span>
-                <button class="action-btn danger" style="font-size: 0.75rem; padding: 4px 8px;" onclick="clearDrafts()">清空</button>
+                <button onclick="clearDrafts()" style="padding: 4px 10px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    清空
+                </button>
             </div>
         </h3>
+
+
 
         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;" id="draft-table">
             <thead>
@@ -40,14 +45,14 @@
                 <th style="padding: 6px 4px; width: 20%;">卡牌定位</th>
                 <th style="padding: 6px 4px; width: 30%;">协同分析</th>
                 <th style="padding: 6px 4px; width: 18%; text-align: center;">负载影响 (Δ)</th>
-                <th style="padding: 6px 4px; width: 10%; text-align: center;">操作</th>
+                <th style="padding: 6px 4px; width: 10%; text-align: center;">加入卡组</th>
             </tr>
             </thead>
             <tbody id="draft-tbody"></tbody>
         </table>
 
         <div id="draft-empty-tip" style="text-align: center; color: #aaa; padding: 15px 0; font-size: 0.85rem;">
-            按住卡牌拖拽至此处，进行定性匹配推演
+            单击下方库中卡牌，将其加入草稿台进行比对
         </div>
     </div>
 
@@ -86,9 +91,19 @@
     <div id="card-list" style="flex: 1; overflow-y: auto; align-content: flex-start;"></div>
 </div>
 
-<div id="deck-panel" class="panel">
+<div id="deck-panel" class="panel" ondragover="event.preventDefault()" ondrop="dropToDeck(event)">
     <h2>我的卡组 (<span id="deck-count">0</span>)</h2>
     <div class="controls">
+
+        <div style="display: flex; background: #ecf0f1; padding: 4px; border-radius: 8px; margin-bottom: 15px;">
+            <button id="tab-live" class="action-btn" style="flex: 1; background: #8e44ad; color: white; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="switchAppMode('live')">
+                实战解析 (读档)
+            </button>
+            <button id="tab-sandbox" class="action-btn" style="flex: 1; background: transparent; color: #7f8c8d; border: none; box-shadow: none;" onclick="switchAppMode('sandbox')">
+                脑测推演 (多方案)
+            </button>
+        </div>
+
         <div class="control-row">
             <div class="input-group">
                 <label>职业:</label>
@@ -108,17 +123,61 @@
                     <option value="type">按类型</option>
                 </select>
             </div>
-            <button class="action-btn danger" style="margin-left: auto;" onclick="clearDeck()">清空</button>
         </div>
 
-        <div class="control-row">
-            <select id="save-slot" style="max-width: 100px;"></select>
-            <button class="action-btn" style="background-color: #3498db;" onclick="renameCurrentSlot()">改名</button>
-            <button class="action-btn" onclick="commitSaveToDisk()">覆盖存档</button>
-            <button class="action-btn warning" style="background-color: #f39c12;" onclick="loadDeckFromDisk(false)">撤销修改</button>
+        <div id="sandbox-controls" class="control-row" style="display: none; flex-wrap: wrap; align-items: center; gap: 10px; background: #fdfefe; padding: 12px; border-radius: 6px; border: 1px solid #e0e4d8; box-sizing: border-box; width: 100%; overflow: hidden;">
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                <select id="save-slot" style="flex: 1 1 auto; max-width: 120px;"></select>
+                <button class="action-btn" style="background-color: #3498db; padding: 4px 8px; font-size: 0.8rem; white-space: nowrap;" onclick="renameCurrentSlot()">改名</button>
+                <button class="action-btn" style="padding: 4px 8px; font-size: 0.8rem; white-space: nowrap;" onclick="commitSaveToDisk()">覆盖存档</button>
+                <button class="action-btn warning" style="background-color: #f39c12; padding: 4px 8px; font-size: 0.8rem; white-space: nowrap;" onclick="loadDeckFromDisk(false)">撤销重载</button>
+            </div>
+
+            <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px;">
+                <button class="action-btn" style="background-color: #7f8c8d; color: white; padding: 4px 8px; font-size: 0.8rem; white-space: nowrap;" onclick="resetToStarter()">初始</button>
+                <button class="action-btn danger" style="background-color: transparent; color: #e74c3c; border: 1px solid #e74c3c; padding: 4px 8px; font-size: 0.8rem; white-space: nowrap;" onclick="clearDeck()">清空</button>
+            </div>
+
         </div>
 
-        <div class="control-row">
+        <div id="live-controls" class="control-row" style="display: flex; background: #f4f6f7; padding: 12px; border-radius: 6px; border: 1px dashed #bdc3c7; flex-direction: column; gap: 12px; box-sizing: border-box; width: 100%; overflow: hidden;">
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; width: 100%;">
+                <button id="bind-dir-btn" class="action-btn" style="background-color: #8e44ad; color: white; font-weight: bold; padding: 6px 15px; white-space: nowrap;" onclick="bindSaveDirectory()">
+                    挂载游戏存档目录
+                </button>
+
+                <select id="auto-save-selector" style="flex: 1 1 200px; max-width: 100%; display: none; border-color: #8e44ad; padding: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" onchange="loadSelectedHotSave()"></select>
+
+                <button id="hot-reload-btn" class="action-btn" style="background-color: #27ae60; color: white; font-weight: bold; padding: 6px 15px; display: none; white-space: nowrap;" onclick="quickHotReload()">
+                    手动拉取最新
+                </button>
+
+                <div id="live-indicator" style="display: none; align-items: center; gap: 6px; font-size: 0.85rem; color: #27ae60; font-weight: bold; white-space: nowrap; padding: 4px 8px; background: rgba(39, 174, 96, 0.1); border-radius: 4px; border: 1px solid rgba(39, 174, 96, 0.3);">
+                    <span style="display: inline-block; width: 8px; height: 8px; background-color: #27ae60; border-radius: 50%; box-shadow: 0 0 6px #27ae60;"></span>
+                    极速引擎运转中
+                </div>
+
+                <button id="deploy-agent-btn" class="action-btn" style="margin-left: auto; background-color: transparent; color: #8e44ad; border: 1px dashed #8e44ad; font-size: 0.8rem; padding: 4px 10px; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; border-radius: 4px;" onmouseover="this.style.backgroundColor='#8e44ad'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#8e44ad'" onclick="downloadDeployScript()" title="自动配置开机无感极速同步">
+                    部署极速后台
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e0e4d8; padding-top: 10px; flex-wrap: wrap; gap: 10px;">
+            <span id="dir-status-text" style="font-size: 0.8rem; color: #7f8c8d; flex: 1; word-break: break-all;">
+                请点击上方按钮，并精准选择 D:\SpireSandbox 根目录。
+            </span>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="rebind-dir-btn" class="action-btn" style="display: none; background-color: #fdfefe; color: #7f8c8d; border: 1px solid #bdc3c7; padding: 4px 10px; font-size: 0.75rem; white-space: nowrap;" onclick="bindSaveDirectory()">重新绑定</button>
+                    <button class="action-btn danger" style="background-color: transparent; color: #e74c3c; border: 1px solid #e74c3c; padding: 4px 10px; font-size: 0.75rem; white-space: nowrap;" onclick="clearDeck()">清空面板</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="control-row" style="margin-top: 10px;">
             <div class="input-group">
                 <label>能量:</label>
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -212,14 +271,14 @@
     </div>
 
     <div style="margin-top: 12px; border-top: 2px dashed #eee; padding-top: 10px;">
-        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; margin-bottom: 6px;">卡组端口雷达 (目标 30 牌规模)</h3>
+        <h3 style="margin-top: 0; color: #2c3e50; font-size: 1rem; margin-bottom: 6px;">卡组端口雷达</h3>
         <div id="port-summary-container" style="font-size: 0.85rem; color: #555; display: flex; flex-direction: column; gap: 6px;">
             <span style="color:#aaa;">请先向卡组添加并鉴定卡牌...</span>
         </div>
     </div>
 </div>
 
-<div id="inspector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 1000; align-items: center; justify-content: center;">
+<div id="inspector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
     <div id="inspector-content-box" style="background: #fff; padding: 25px; border-radius: 12px; width: 400px; border: 3px solid #2980b9; box-shadow: 0 0 40px rgba(41, 128, 185, 0.4);">
         <h2 style="margin-top: 0; display: flex; justify-content: space-between;">
             <span>卡牌鉴定</span>

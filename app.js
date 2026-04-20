@@ -3,6 +3,38 @@
 let allCards = {};
 let myDeck = [];
 let myDrafts = [];
+// 增加两个平行的宇宙内存
+let sandboxMemoryDeck = []; // 脑测模式专属内存
+let liveMemoryDeck = [];    // 实战模式专属内存
+let currentAppMode = 'sandbox'; // 默认进入脑测模式
+
+// --- 核心修复：新增双轨环境的独立参数内存 ---
+let liveMemoryEnergy = localStorage.getItem('SpireV2_LiveEnergy') || "3.0";
+let liveMemoryDraw = localStorage.getItem('SpireV2_LiveDraw') || "5";
+let sandboxMemoryEnergy = "3.0";
+let sandboxMemoryDraw = "5";
+
+// 同步侦听器：实时将输入框的改动写入对应的平行宇宙内存
+function bindParameterInputs() {
+    const eInput = document.getElementById('energy-input');
+    const dInput = document.getElementById('draw-input');
+
+    const saveParams = () => {
+        if (currentAppMode === 'live') {
+            liveMemoryEnergy = eInput.value;
+            liveMemoryDraw = dInput.value;
+            localStorage.setItem('SpireV2_LiveEnergy', liveMemoryEnergy);
+            localStorage.setItem('SpireV2_LiveDraw', liveMemoryDraw);
+        } else {
+            sandboxMemoryEnergy = eInput.value;
+            sandboxMemoryDraw = dInput.value;
+        }
+    };
+
+    if(eInput) eInput.addEventListener('input', saveParams);
+    if(dInput) dInput.addEventListener('input', saveParams);
+}
+window.addEventListener('DOMContentLoaded', bindParameterInputs);
 
 const classIcons = {
     "ironclad": "战", "silent": "猎", "defect": "机",
@@ -19,19 +51,16 @@ const starterTemplates = {
     "regent": ["StrikeRegent", "StrikeRegent", "StrikeRegent", "StrikeRegent", "DefendRegent", "DefendRegent", "DefendRegent", "DefendRegent", "Falling Star", "Venerate", "AscendersBane"]
 };
 
-// ================= V2.0 方案管理系统 (命名空间隔离版) =================
+// ================= V2.0 方案管理系统 =================
 let slotNames = JSON.parse(localStorage.getItem('SpireV2_SlotNames')) || {};
 
-// 切换职业时：重新渲染槽位，并自动读取该职业的对应卡组
 function switchClassWorkspace() {
-    // 核心新增：每次切换职业时，立刻将当前职业代号写入本地硬盘记忆
     const currentJob = document.getElementById('job-select').value;
     localStorage.setItem('SpireV2_LastJob', currentJob);
     renderSaveSlots();
     loadDeckFromDisk(true);
 }
 
-// 渲染方案下拉框 (按职业绝对隔离)
 function renderSaveSlots() {
     const select = document.getElementById('save-slot');
     if (!select) return;
@@ -41,7 +70,6 @@ function renderSaveSlots() {
 
     select.innerHTML = '';
 
-    // 生成该职业专属的 4 个槽位，例如 regent_slot1
     for (let i = 1; i <= 4; i++) {
         let slotId = `${currentJob}_slot${i}`;
         let defaultName = `方案 ${i}`;
@@ -53,7 +81,6 @@ function renderSaveSlots() {
         select.appendChild(opt);
     }
 
-    // 智能保持选中状态：如果切回来，还是切走前的槽位；如果是刚切到新职业，默认选 slot1
     if (previousSelection && previousSelection.startsWith(currentJob)) {
         select.value = previousSelection;
     } else {
@@ -61,7 +88,6 @@ function renderSaveSlots() {
     }
 }
 
-// 重命名当前方案
 function renameCurrentSlot() {
     const select = document.getElementById('save-slot');
     const currentSlot = select.value;
@@ -75,55 +101,77 @@ function renameCurrentSlot() {
     }
 }
 
-// 清空当前沙盘
-function clearDeck() {
-    if (myDeck.length > 0 && confirm("确定要清空当前卡组吗？\n(注意：这只是清空当前沙盘面板，点击[覆盖存档]才会保存此状态)")) {
-        myDeck = [];
-        updateWorkshop();
-    }
-}
-
-// ================= V2.0 沙盘读写分离引擎 =================
-
-// 从硬盘读取存档并覆盖沙盘
-function loadDeckFromDisk(isInitialLoad = false) {
-    let slot = document.getElementById('save-slot').value || 'save1';
-    let savedData = localStorage.getItem(`sts2_v2_save_${slot}`);
+function resetToStarter() {
+    if (!confirm("确定要恢复为该职业的初始卡组吗？\n(注意：这只会改变当前沙盘面板，点击[覆盖存档]才会正式保存此状态)")) return;
 
     myDeck = [];
+    let currentJob = document.getElementById('job-select')?.value || 'regent';
 
-    // 【核心修复】：切档前，先强制将环境参数洗白为默认值，杜绝残影
+    if (typeof starterTemplates !== 'undefined' && starterTemplates[currentJob]) {
+        const template = starterTemplates[currentJob];
+        template.forEach(targetId => {
+            let normalizedTarget = targetId.toLowerCase().replace(/[^a-z0-9]/g, '');
+            let realKey = Object.keys(allCards).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedTarget);
+            if (realKey) {
+                myDeck.push({ ...allCards[realKey], id: realKey, isUpgraded: false });
+            }
+        });
+    }
+
     let energyInput = document.getElementById('energy-input');
     let drawInput = document.getElementById('draw-input');
     if (energyInput) energyInput.value = "3.0";
     if (drawInput) drawInput.value = "5";
 
+    if (typeof myDrafts !== 'undefined') myDrafts.forEach(d => d.selected = false);
+    updateWorkshop();
+}
+
+function clearDeck() {
+    if (myDeck.length > 0 && confirm("确定要完全清空当前卡组吗？\n(注意：这只会清空当前沙盘面板，点击[覆盖存档]才会正式保存此状态)")) {
+        myDeck = [];
+        if (typeof myDrafts !== 'undefined') myDrafts.forEach(d => d.selected = false);
+        updateWorkshop();
+    }
+}
+
+// ================= V2.0 沙盘读写分离引擎 =================
+function loadDeckFromDisk(isInitialLoad = false) {
+    let slot = document.getElementById('save-slot').value || 'save1';
+    let savedData = localStorage.getItem(`sts2_v2_save_${slot}`);
+
+    myDeck = [];
+    let energyInput = document.getElementById('energy-input');
+    let drawInput = document.getElementById('draw-input');
+
     if (savedData) {
         try {
             let state = JSON.parse(savedData);
-
-            // 智能嗅探：兼容一维数组旧存档
             let savedDeck = Array.isArray(state) ? state : (state.deck || []);
 
-            // 匹配完整数据字典
             savedDeck.forEach(sc => {
                 if (allCards[sc.id]) {
                     myDeck.push({ ...allCards[sc.id], id: sc.id, isUpgraded: sc.isUpgraded });
                 }
             });
 
-            // 如果存档中存在特殊环境参数，则覆盖刚才洗白的默认值
             if (!Array.isArray(state)) {
-                if (state.energy !== undefined && energyInput) energyInput.value = state.energy;
-                if (state.draw !== undefined && drawInput) drawInput.value = state.draw;
-                if (state.job !== undefined) document.getElementById('job-select').value = state.job;
+                if (state.energy !== undefined) {
+                    sandboxMemoryEnergy = state.energy;
+                    if (currentAppMode === 'sandbox' && energyInput) energyInput.value = state.energy;
+                }
+                if (state.draw !== undefined) {
+                    sandboxMemoryDraw = state.draw;
+                    if (currentAppMode === 'sandbox' && drawInput) drawInput.value = state.draw;
+                }
+                if (state.job !== undefined) {
+                    document.getElementById('job-select').value = state.job;
+                }
             }
-
         } catch (e) {
             console.error("读取存档失败", e);
         }
     } else {
-        // 空存档，下发当前选择职业的初始牌
         let currentJob = document.getElementById('job-select')?.value || 'regent';
         if (typeof starterTemplates !== 'undefined' && starterTemplates[currentJob]) {
             const template = starterTemplates[currentJob];
@@ -137,7 +185,6 @@ function loadDeckFromDisk(isInitialLoad = false) {
 
     updateWorkshop();
 
-    // 视觉反馈
     if (!isInitialLoad) {
         let btn = document.querySelector('button[onclick^="loadDeckFromDisk"]');
         if(btn) {
@@ -148,7 +195,6 @@ function loadDeckFromDisk(isInitialLoad = false) {
     }
 }
 
-// 将当前沙盘覆盖写入硬盘
 function commitSaveToDisk() {
     let slot = document.getElementById('save-slot').value || 'save1';
     let energy = document.getElementById('energy-input').value;
@@ -157,7 +203,6 @@ function commitSaveToDisk() {
 
     let stateToSave = {
         deck: myDeck,
-        // 核心修复：必须使用 parseFloat，否则保存时会丢失遗物的小数均值
         energy: parseFloat(energy),
         draw: parseInt(draw),
         job: job
@@ -181,6 +226,10 @@ function commitSaveToDisk() {
 const AVAILABLE_TAGS = ["过渡输出", "过渡防御", "终端输出", "终端防御", "润滑运转"];
 const AVAILABLE_TIERS = ["S", "A", "B", "C", "F"];
 
+const TIER_WEIGHTS = {
+    'S': 1.5, 'A': 1.2, 'B': 1.0, 'C': 0.8, 'F': 0.3
+};
+
 const CLASS_COLORS = {
     "ironclad": { hex: "#e74c3c", rgb: "231, 76, 60" },
     "silent": { hex: "#2ecc71", rgb: "46, 204, 113" },
@@ -196,7 +245,6 @@ const CLASS_COLORS = {
 let cardDictionary = JSON.parse(localStorage.getItem('SpireV2_Dictionary')) || {};
 let currentInspectingCardId = null;
 
-// ================= 极简属性引擎 =================
 function parseCardStats(card, isUpgraded) {
     let cost = card.Cost !== undefined ? card.Cost : (card.BaseCost !== undefined ? card.BaseCost : 0);
     let desc = card.Description || "";
@@ -243,8 +291,12 @@ function openInspector(cardId, cardNameZHS) {
         btn.className = `tier-btn tier-${t} ${cardData.tier === t ? 'active' : ''}`;
         btn.innerText = t;
         btn.onclick = (e) => {
-            document.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
+            if (e.target.classList.contains('active')) {
+                e.target.classList.remove('active');
+            } else {
+                document.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            }
         };
         tierContainer.appendChild(btn);
     });
@@ -282,7 +334,9 @@ function saveInspectorData() {
 
     cardDictionary[currentInspectingCardId] = {
         tier: selectedTier,
-        tags: selectedTags
+        tags: selectedTags,
+        lastModified: Date.now(),
+        hasTags: (selectedTier !== "" || selectedTags.length > 0)
     };
 
     localStorage.setItem('SpireV2_Dictionary', JSON.stringify(cardDictionary));
@@ -328,7 +382,6 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
     let savedInfo = cardDictionary[cardId];
     let tagHtml = "";
 
-    // 只在左侧卡库渲染悬浮标签
     if (mode === "library" && savedInfo && (savedInfo.tier || savedInfo.tags.length > 0)) {
         let tierLabel = savedInfo.tier && savedInfo.tier !== "-" ? `<span class="mini-tag tier-${savedInfo.tier}">${savedInfo.tier}级</span>` : "";
         let tagsLabels = savedInfo.tags.map(t => `<span class="mini-tag">${t}</span>`).join("");
@@ -337,7 +390,12 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
 
     btn.innerHTML = `<span class="class-icon">[${icon}]</span> ${cName} [${cCost}] ${tagHtml}`;
     btn.draggable = true;
+
     btn.ondragstart = (e) => {
+        if (currentAppMode === 'live') {
+            e.preventDefault();
+            return;
+        }
         e.dataTransfer.setData('cardId', cardId);
         e.dataTransfer.setData('isUpgraded', isUpgraded);
     };
@@ -345,9 +403,11 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
     if (mode === "library") {
         btn.onclick = () => {
             let newCard = JSON.parse(JSON.stringify(cardData));
-            newCard.id = cardId; newCard.isUpgraded = false;
-            myDeck.push(newCard);
-            updateWorkshop();
+            newCard.id = cardId;
+            newCard.isUpgraded = false;
+            newCard.selected = false;
+            myDrafts.push(newCard);
+            updateDrafts();
         };
         btn.oncontextmenu = (e) => {
             e.preventDefault();
@@ -363,6 +423,7 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
             let realIndex = targetArray.indexOf(cardData);
             if(realIndex > -1) { targetArray.splice(realIndex, 1); updateFn(); }
         };
+
         btn.oncontextmenu = (e) => {
             e.preventDefault();
             cardData.isUpgraded = !cardData.isUpgraded;
@@ -372,76 +433,115 @@ function createCardButton(cardId, cardData, modeOrIsDeck = false, index = -1) {
     return btn;
 }
 
+window.dropToDeck = function(e) {
+    if (currentAppMode === 'live') return;
+    e.preventDefault();
+    let cardId = e.dataTransfer.getData('cardId');
+    let isUpg = e.dataTransfer.getData('isUpgraded') === 'true';
+    if (cardId && allCards[cardId]) {
+        myDeck.push({ ...allCards[cardId], id: cardId, isUpgraded: isUpg });
+        updateWorkshop();
+    }
+};
+
 // ================= 主卡组运转引擎 =================
 function updateWorkshop() {
     const deckDiv = document.getElementById('my-deck');
-    const deckCountEl = document.getElementById('deck-count');
-    if (deckCountEl) deckCountEl.innerText = myDeck.length;
+    const deckCountSpan = document.getElementById('deck-count');
+
+    let renderList = [];
+    myDeck.forEach(c => renderList.push({ ref: c, _isVirtual: false }));
+
+    let virtualCardCount = 0;
+    myDrafts.forEach(draftItem => {
+        if (draftItem.selected && currentAppMode === 'live') {
+            renderList.push({ ref: draftItem, _isVirtual: true });
+            virtualCardCount++;
+        }
+    });
+
+    if (deckCountSpan) {
+        deckCountSpan.innerText = myDeck.length + (virtualCardCount > 0 ? ` (+${virtualCardCount} 构想)` : "");
+    }
 
     deckDiv.innerHTML = '';
 
-    if (myDeck.length === 0) {
-        deckDiv.innerHTML = '<p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 20px;">点击左侧卡牌加入卡组<br><br>加入后：<b>左键</b>移除，<b>右键</b>强化/降级</p>';
-        updateDashboard(0, 0, 0, 0);
+    if (renderList.length === 0) {
+        deckDiv.innerHTML = '<p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 20px;">左键单击图纸加入推演台<br>拖拽图纸进入此区域以直接加入<br><br><b>实战模式下拖拽已锁定</b></p>';
+        updateDashboard([], 0, 0, 0);
         return;
     }
 
     let sortType = document.getElementById('deck-sort-select')?.value || "acquire";
-    let renderDeck = [...myDeck];
 
     if (sortType === "cost") {
-        renderDeck.sort((a, b) => {
-            let cA = parseCardStats(a, a.isUpgraded).cost;
-            let cB = parseCardStats(b, b.isUpgraded).cost;
+        renderList.sort((a, b) => {
+            let cA = parseCardStats(a.ref, a.ref.isUpgraded).cost;
+            let cB = parseCardStats(b.ref, b.ref.isUpgraded).cost;
             if (cA !== cB) return cA - cB;
-            return (a.Name_ZHS || a.id).localeCompare(b.Name_ZHS || b.id);
+            return (a.ref.Name_ZHS || a.ref.id).localeCompare(b.ref.Name_ZHS || b.ref.id);
         });
     } else if (sortType === "type") {
         const typeOrder = { "attack": 1, "skill": 2, "power": 3, "status": 4, "curse": 5 };
-        renderDeck.sort((a, b) => {
-            let tA = typeOrder[(a.Type || "").toLowerCase()] || 99;
-            let tB = typeOrder[(b.Type || "").toLowerCase()] || 99;
+        renderList.sort((a, b) => {
+            let tA = typeOrder[(a.ref.Type || "").toLowerCase()] || 99;
+            let tB = typeOrder[(b.ref.Type || "").toLowerCase()] || 99;
             if (tA !== tB) return tA - tB;
-            return (a.Name_ZHS || a.id).localeCompare(b.Name_ZHS || b.id);
+            return (a.ref.Name_ZHS || a.ref.id).localeCompare(b.ref.Name_ZHS || b.ref.id);
         });
     }
 
     let totalEnergyCost = 0;
     let drawCount = 0;
     let exhaustCount = 0;
+    let combinedVirtualDeck = [];
 
-    renderDeck.forEach(card => {
-        deckDiv.appendChild(createCardButton(card.id, card, true));
+    renderList.forEach(item => {
+        let card = item.ref;
+        combinedVirtualDeck.push(card);
+
+        let btn = createCardButton(card.id, card, "deck");
+
+        if (item._isVirtual) {
+            btn.style.border = "2px dashed #f39c12";
+            btn.style.opacity = "0.9";
+            let oldHtml = btn.innerHTML;
+            btn.innerHTML = `<span style="color:#f39c12; font-weight:bold; font-size:0.7rem; padding: 1px 4px; border: 1px solid #f39c12; border-radius: 4px; margin-right:4px;">构想</span>` + oldHtml;
+
+            btn.onclick = () => {
+                card.selected = false;
+                updateWorkshop();
+            };
+            btn.oncontextmenu = (e) => { e.preventDefault(); };
+        }
+
+        deckDiv.appendChild(btn);
 
         let stats = parseCardStats(card, card.isUpgraded);
-
-        // 核心修正：不再排除基础牌。任何有明确费用的牌都必须计入总池。
         if (typeof stats.cost === 'number' && stats.cost >= 0) {
             totalEnergyCost += stats.cost;
         }
-
         let lowerDesc = stats.desc.toLowerCase();
         if (lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCount++;
         if (lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCount++;
     });
 
-    let deckSize = myDeck.length;
-    // 真实的单卡期望耗费：总费用 / 卡组总厚度
+    let deckSize = combinedVirtualDeck.length;
     let avgCost = deckSize > 0 ? (totalEnergyCost / deckSize) : 0;
 
-    updateDashboard(deckSize, avgCost, drawCount, exhaustCount);
+    updateDashboard(combinedVirtualDeck, avgCost, drawCount, exhaustCount);
     updateDrafts();
 }
 
-// ================= 全息仪表盘与概率引擎 (出牌自由度重构版) =================
-function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
+// ================= 全息仪表盘与概率引擎 =================
+function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
     const baseDrawInput = parseInt(document.getElementById('draw-input')?.value || 5);
+    let deckSize = deckToAnalyze.length;
 
     let energyText = document.getElementById('energy-text');
     let energyFill = document.getElementById('energy-fill');
 
-    // 1. 出牌自由度引擎 (替代旧的能量负载)
     if (energyText && energyFill) {
         let labelSpan = energyText.previousElementSibling;
         if (labelSpan) labelSpan.innerText = "出牌自由度 (能量支撑度)";
@@ -453,22 +553,14 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         } else {
             let playableCards = baseEnergyInput / avgCost;
             energyText.innerText = `均费 ${avgCost.toFixed(2)} | 可出 ${playableCards.toFixed(1)} 张`;
-
-            // 以每回合能支撑打出 3.5 张牌作为 100% 满分标准
             let pct = Math.min((playableCards / 3.5) * 100, 100);
             energyFill.style.width = pct + "%";
-
-            if (playableCards >= 3.0) {
-                energyFill.style.background = "#27ae60"; // 绿色：极其流畅
-            } else if (playableCards >= 2.0) {
-                energyFill.style.background = "#f39c12"; // 橙色：偏重
-            } else {
-                energyFill.style.background = "#c0392b"; // 红色：严重卡手
-            }
+            if (playableCards >= 3.0) energyFill.style.background = "#27ae60";
+            else if (playableCards >= 2.0) energyFill.style.background = "#f39c12";
+            else energyFill.style.background = "#c0392b";
         }
     }
 
-    // 2. 润滑度 UI
     let dPct = deckSize > 0 ? (drawCount / deckSize) * 100 : 0;
     let ePct = deckSize > 0 ? (exhaustCount / deckSize) * 100 : 0;
     let drawFill = document.getElementById('draw-fill');
@@ -480,73 +572,88 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
         engText.innerText = `${dPct.toFixed(0)}% 过牌 | ${ePct.toFixed(0)}% 压缩`;
     }
 
-    // 3. 统计当前标签
     let tagCounts = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
     let tagCardNames = { "过渡输出": [], "过渡防御": [], "终端输出": [], "终端防御": [], "润滑运转": [] };
+    let cantripCounts = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
 
-    myDeck.forEach(card => {
+    let fTierCount = 0;
+
+    deckToAnalyze.forEach(card => {
         let info = cardDictionary[card.id];
+        let dStats = (typeof parseCardStats === 'function') ? parseCardStats(card, card.isUpgraded) : { cost: 0 };
+        let cost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
+        let isCantrip = (cost === 0 && info && info.tags && info.tags.includes("润滑运转"));
+
+        let weight = 1.0;
+        if (info && info.tier && typeof TIER_WEIGHTS !== 'undefined') {
+            weight = TIER_WEIGHTS[info.tier] || 1.0;
+        }
+
+        if (info && info.tier === "F") fTierCount++;
+
         if (info && info.tags) {
             info.tags.forEach(t => {
                 if (tagCounts[t] !== undefined) {
-                    tagCounts[t]++;
+                    let actualWeight = (info.tier === 'F' && t !== "润滑运转") ? 0 : weight;
+
+                    tagCounts[t] += actualWeight;
+                    if (isCantrip) cantripCounts[t] += actualWeight;
                     let cName = card.Name_ZHS || card.id;
-                    if (!tagCardNames[t].includes(cName)) tagCardNames[t].push(cName);
+
+                    if (actualWeight > 0 && !tagCardNames[t].includes(cName)) {
+                        tagCardNames[t].push(cName);
+                    }
                 }
             });
         }
     });
 
-    // --- 改动后的新代码开始 (引入基础抽牌抵扣机制) ---
+    let rawEngineScore = tagCounts["润滑运转"] || 0;
+    let realThinningPower = drawCount + (exhaustCount * 0.5);
+    let validEngineScore = Math.min(rawEngineScore, realThinningPower * 1.5);
+    let engineBonus = Math.floor(validEngineScore * 0.3);
+
     let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
-    // 计算先天抽牌优势 (超出基础 5 张的部分)
     let extraBaseDraw = baseDrawInput > 5 ? (baseDrawInput - 5) : 0;
 
-    // 动态目标 = 基础(4) + 惩罚(1.5*终端) - 先天优势
-    // 用 Math.max(0, ...) 确保目标需求不会变成负数
-    let dynamicDrawTarget = Math.max(0, 4 + Math.ceil(terminalCardCount * 1.5) - extraBaseDraw);
-    // --- 改动后的新代码结束 ---
+    let junkPenalty = Math.ceil(fTierCount * 0.5);
+    let dynamicDrawTarget = Math.max(4, 4 + Math.ceil(terminalCardCount * 0.8) + junkPenalty - extraBaseDraw);
 
-    const TARGET_SLOTS = {
-        "过渡输出": 5,
-        "过渡防御": 8,
-        "终端输出": 3,
-        "终端防御": 4,
-        "润滑运转": dynamicDrawTarget
+    const BASE_REQ = {
+        "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTarget
+    };
+
+    const MAX_CAP = {
+        "过渡输出": 5 + engineBonus,
+        "过渡防御": 8 + engineBonus,
+        "终端输出": 3 + Math.floor(engineBonus * 0.5),
+        "终端防御": 4 + Math.floor(engineBonus * 0.5),
+        "润滑运转": 99
     };
 
     const portContainer = document.getElementById('port-summary-container');
     if (portContainer) {
         portContainer.innerHTML = '';
 
-        // 5. 马斯洛需求法则：最高指令系统
         const PRIORITY_HIERARCHY = [
-            { tag: "过渡输出", msg: "你的前期伤害极度匮乏，极易在第一层暴毙！立刻寻找优质攻击牌，停止抓取能力牌和过牌！" },
-            { tag: "过渡防御", msg: "战损控制能力严重不足！遇到连续高攻怪会快速死亡，急需补充基础护盾或虚弱牌！" },
-            { tag: "终端防御", msg: "面对后期高额伤害毫无抵抗力！必须立刻寻找群体虚弱、无实体或大额护盾！" },
-            { tag: "终端输出", msg: "缺乏破局的制胜手段！打不死后期血牛怪物，需要寻找高爆发核心或无限流组件！" },
-            { tag: "润滑运转", msg: "卡组极其笨重，极大概率开局卡手暴毙！立刻寻找优质过牌或消耗牌，坚决停止抓取任何高费牌！" }
+            { tag: "过渡输出", msg: "前期伤害匮乏！（强烈建议：优先抓取 AOE 群攻牌）" },
+            { tag: "过渡防御", msg: "战损控制不足！（注意补充虚弱或群体降攻手段）" },
+            { tag: "终端防御", msg: "急需大额护盾或无实体保命！" },
+            { tag: "终端输出", msg: "缺乏后期制胜手段！（需补充多段伤害或核心爆发）" },
+            { tag: "润滑运转", msg: "卡组笨重，废牌过多，极大概率卡手暴毙！" }
         ];
 
         let topPriorityHTML = "";
-        let currentDeckSize = myDeck.length;
 
-        if (currentDeckSize > 0) {
+        if (deckSize > 0) {
             for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
                 let p = PRIORITY_HIERARCHY[i];
                 let currentCount = tagCounts[p.tag] || 0;
-                let targetCount = TARGET_SLOTS[p.tag] || 1;
-                let pctRatio = currentCount / targetCount;
+                let reqCount = BASE_REQ[p.tag] || 1;
 
-                if (currentCount === 0) {
-                    topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(192, 57, 43, 0.2);">
-                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 极度缺乏：${p.tag}</div>
-                        <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
-                    </div>`;
-                    break;
-                } else if (pctRatio < 0.5) {
-                    topPriorityHTML = `<div style="background:#e67e22; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(230, 126, 34, 0.2);">
-                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[紧急警告] 急需补强：${p.tag}</div>
+                if (currentCount < reqCount * 0.5) {
+                    topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px;">
+                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
                         <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
                     </div>`;
                     break;
@@ -556,51 +663,62 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
             if (!topPriorityHTML) {
                 topPriorityHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
                     <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[运转良好] 卡组结构健康</div>
-                    <div style="font-size:0.85rem; opacity:0.9;">各端口均无致命短板，可根据特定遗物和Boss进行针对性微调。</div>
+                    <div style="font-size:0.85rem; opacity:0.9;">基础生存线均已达标。建议根据环境适量补充 AOE 或多段伤害以提升容错率。</div>
                 </div>`;
             }
 
             portContainer.innerHTML += topPriorityHTML;
         }
 
-        // 6. 渲染雷达条 (硬核预警标准)
         AVAILABLE_TAGS.forEach(tag => {
             let current = tagCounts[tag];
-            let target = TARGET_SLOTS[tag];
-            let pct = Math.min((current / target) * 100, 100);
+            let req = BASE_REQ[tag];
+            let cap = MAX_CAP[tag];
 
-            let pctRatio = current / target;
-            let isOverflow = current > target;
+            let pct = Math.min((current / req) * 100, 100);
+
+            let cantripExemptCount = cantripCounts[tag] || 0;
+            let toxicCurrent = current - cantripExemptCount;
+
             let statusColor, statusText;
 
-            if (current === 0) {
+            if (current < req * 0.5) {
                 statusColor = "#e74c3c";
-                statusText = "[致命空缺]";
-            } else if (isOverflow) {
-                statusColor = "#e67e22";
-                statusText = `[冗余卡手 +${current - target}]`;
-            } else if (pctRatio < 0.5) {
-                statusColor = "#c0392b";
                 statusText = "[高危断档]";
-            } else if (pctRatio < 0.8) {
+            } else if (current < req * 0.8) {
                 statusColor = "#f39c12";
                 statusText = "[运转迟缓]";
-            } else if (current === target) {
+            } else if (toxicCurrent <= cap) {
                 statusColor = "#27ae60";
-                statusText = "[完美成型]";
+                if (tag === "润滑运转" && current > req + 2) {
+                    statusColor = "#8e44ad";
+                    statusText = `[极致运转 +${(current - req).toFixed(1)}]`;
+                } else {
+                    statusText = "[完美成型]";
+                }
             } else {
-                statusColor = "#3498db";
-                statusText = "[平滑积累]";
+                let realToxic = toxicCurrent - cap;
+                if (tag === "终端输出") {
+                    statusColor = "#8e44ad";
+                    statusText = `[火力压制 +${realToxic.toFixed(1)}]`;
+                } else if (tag === "终端防御") {
+                    statusColor = "#8e44ad";
+                    statusText = `[绝对壁垒 +${realToxic.toFixed(1)}]`;
+                } else {
+                    statusColor = "#e67e22";
+                    statusText = `[冗余卡手 +${realToxic.toFixed(1)}]`;
+                }
             }
 
-            let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "无";
+            let cardListStr = tagCardNames[tag].length > 0 ? tagCardNames[tag].join(", ") : "已清空废牌杂质";
+            let displayTarget = tag === "润滑运转" ? req : `${req} ~ ${cap}`;
 
             let div = document.createElement('div');
             div.style.marginBottom = "10px";
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.85rem;">
                     <strong style="color:#333;">${tag} <span style="color:${statusColor}; font-weight:normal; font-size:0.75rem;">${statusText}</span></strong>
-                    <span style="color:#666; font-weight:bold;">${current} / ${target}</span>
+                    <span style="color:#666; font-weight:bold;">${current.toFixed(1)} / ${displayTarget}</span>
                 </div>
                 <div class="port-bar" style="background:#eef0eb; height:10px; border-radius:5px; overflow:hidden;">
                     <div class="port-fill" style="height:100%; width:${pct}%; background-color:${statusColor}; transition:width 0.3s;"></div>
@@ -612,7 +730,7 @@ function updateDashboard(deckSize, avgCost, drawCount, exhaustCount) {
     }
 }
 
-// ================= 标签协同推演台 (全量防弹版) =================
+// ================= 推演台引擎 =================
 function updateDrafts() {
     try {
         let tbody = document.getElementById('draft-tbody');
@@ -630,51 +748,66 @@ function updateDrafts() {
         let deckSize = myDeck.length;
         let deckTagsCount = { "过渡输出": 0, "过渡防御": 0, "终端输出": 0, "终端防御": 0, "润滑运转": 0 };
         let currentTotalEnergyCost = 0;
+        let fTierCountDeck = 0;
+        let drawCountDraft = 0;
+        let exhaustCountDraft = 0;
 
-        // 1. 统计当前卡组状态
         myDeck.forEach(card => {
             let info = cardDictionary[card.id];
+            let weight = (info && info.tier && typeof TIER_WEIGHTS !== 'undefined') ? (TIER_WEIGHTS[info.tier] || 1.0) : 1.0;
+
+            if (info && info.tier === "F") fTierCountDeck++;
+
             if (info && info.tags) {
                 info.tags.forEach(t => {
-                    if (deckTagsCount[t] !== undefined) deckTagsCount[t]++;
+                    if (deckTagsCount[t] !== undefined) {
+                        let actualWeight = (info.tier === 'F' && t !== "润滑运转") ? 0 : weight;
+                        deckTagsCount[t] += actualWeight;
+                    }
                 });
             }
-            let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, card.isUpgraded) : { cost: 0 };
+            let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, card.isUpgraded) : { cost: 0, desc: "" };
             if (typeof stats.cost === 'number' && stats.cost >= 0) {
                 currentTotalEnergyCost += stats.cost;
             }
+            let lowerDesc = (stats.desc || "").toLowerCase();
+            if (lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCountDraft++;
+            if (lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCountDraft++;
         });
 
-        // 2. 准备全局运算参数（基于出牌自由度的能量判定）
         let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
         const baseEnergyInput = parseFloat(document.getElementById('energy-input')?.value || 3);
+        let isEnergyAbundant = currentAvgCost > 0 ? ((baseEnergyInput / currentAvgCost) > 3.2) : true;
 
-        // 判定标准：能量 / 均费 >= 2.8 即视为能量充裕
-        let isEnergyAbundant = currentAvgCost > 0 ? ((baseEnergyInput / currentAvgCost) >= 2.8) : true;
+        let rawEngineScoreDraft = deckTagsCount["润滑运转"] || 0;
+        let realThinningPowerDraft = drawCountDraft + (exhaustCountDraft * 0.5);
+        let validEngineScoreDraft = Math.min(rawEngineScoreDraft, realThinningPowerDraft * 1.5);
+        let engineBonusDraft = Math.floor(validEngineScoreDraft * 0.3);
 
-        // 3. 准备启动负重惩罚动态目标
-        // --- 改动后的新代码开始 (同步引入抽牌抵扣) ---
         let terminalCountInDeck = (deckTagsCount["终端输出"] || 0) + (deckTagsCount["终端防御"] || 0);
         const baseDrawInputForDraft = parseInt(document.getElementById('draw-input')?.value || 5);
         let extraBaseDrawDraft = baseDrawInputForDraft > 5 ? (baseDrawInputForDraft - 5) : 0;
 
-        let dynamicDrawTargetRef = Math.max(0, 4 + Math.ceil(terminalCountInDeck * 1.5) - extraBaseDrawDraft);
-        // --- 改动后的新代码结束 ---
+        let junkPenaltyDraft = Math.ceil(fTierCountDeck * 0.5);
+        let dynamicDrawTargetRef = Math.max(4, 4 + Math.ceil(terminalCountInDeck * 0.8) + junkPenaltyDraft - extraBaseDrawDraft);
 
-        const TARGET_SLOTS_REF = {
-            "过渡输出": 5,
-            "过渡防御": 8,
-            "终端输出": 3,
-            "终端防御": 4,
-            "润滑运转": dynamicDrawTargetRef
+        const TARGET_REQ_REF = {
+            "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTargetRef
         };
 
-        // 4. 开始渲染候选卡牌列
+        const TARGET_CAP_REF = {
+            "过渡输出": 5 + engineBonusDraft,
+            "过渡防御": 8 + engineBonusDraft,
+            "终端输出": 3 + Math.floor(engineBonusDraft * 0.5),
+            "终端防御": 4 + Math.floor(engineBonusDraft * 0.5),
+            "润滑运转": 99
+        };
+
         myDrafts.forEach((draftCard, index) => {
             let tr = document.createElement('tr');
             tr.style.borderBottom = "1px dashed #e0e4d8";
+            if (draftCard.selected) tr.style.backgroundColor = "rgba(39, 174, 96, 0.05)";
 
-            // -- 第一列：卡牌按钮 --
             let tdCard = document.createElement('td');
             tdCard.style.padding = "4px 2px";
             tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
@@ -683,7 +816,6 @@ function updateDrafts() {
             let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
             if (!savedInfo.tags) savedInfo.tags = [];
 
-            // -- 第二列：卡牌定位标签 --
             let tdTags = document.createElement('td');
             tdTags.style.padding = "6px 4px";
             let tierColor = savedInfo.tier === "S" ? "#ff9f43" : (savedInfo.tier === "A" ? "#ee5253" : (savedInfo.tier === "F" ? "#7f8c8d" : "#2980b9"));
@@ -692,29 +824,52 @@ function updateDrafts() {
             tdTags.innerHTML = `${tierHtml}${tagsHtml}`;
             tr.appendChild(tdTags);
 
-            // -- 第三列：协同分析 (同步最严苛打分标准) --
             let tdEval = document.createElement('td');
             tdEval.style.padding = "6px 4px";
+
+            let dStats = (typeof parseCardStats === 'function') ? parseCardStats(draftCard, draftCard.isUpgraded) : { cost: 0 };
+            let draftCardCost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
+            let isFreeCantrip = (draftCardCost === 0 && savedInfo.tags.includes("润滑运转"));
 
             if (savedInfo.tags.length === 0 && savedInfo.tier === "-") {
                 tdEval.innerHTML = `<span style="color:#e74c3c;">未鉴定</span>`;
             } else if (savedInfo.tier === "F") {
-                tdEval.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">严重污染</span><br><span style="font-size:0.8rem; color:#666;">F级废牌</span>`;
+                tdEval.innerHTML = `<span style="color:#7f8c8d; font-weight:bold;">严重污染</span><br><span style="font-size:0.8rem; color:#666;">纯净度杀手</span>`;
             } else {
                 let score = 0;
                 let matchReasons = [];
+                let hasLifeSaver = false;
 
                 savedInfo.tags.forEach(tag => {
                     let currentCount = deckTagsCount[tag] || 0;
-                    let targetCount = TARGET_SLOTS_REF[tag] || 5;
-                    let pctRatio = currentCount / targetCount;
+                    let reqCount = TARGET_REQ_REF[tag] || 5;
+                    let pctRatio = reqCount > 0 ? (currentCount / reqCount) : 1;
+                    if (currentCount === 0 || pctRatio < 0.5) hasLifeSaver = true;
+                });
+
+                savedInfo.tags.forEach(tag => {
+                    let currentCount = deckTagsCount[tag] || 0;
+                    let reqCount = TARGET_REQ_REF[tag] || 5;
+                    let capCount = TARGET_CAP_REF[tag] || 5;
+                    let pctRatio = reqCount > 0 ? (currentCount / reqCount) : 1;
 
                     if (currentCount === 0) {
                         score += 80;
                         matchReasons.push(`[救命] 填补致命空缺(${tag})`);
-                    } else if (currentCount >= targetCount) {
-                        score -= 100;
-                        matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
+                    } else if (currentCount >= capCount) {
+                        if (isFreeCantrip) {
+                            score += 5;
+                            matchReasons.push(`[白嫖] 零费运转无视冗余(${tag})`);
+                        } else if (hasLifeSaver) {
+                            score -= 5;
+                            matchReasons.push(`[附带] 溢出但可接受(${tag})`);
+                        } else {
+                            score -= 100;
+                            matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
+                        }
+                    } else if (currentCount >= reqCount) {
+                        score += 5;
+                        matchReasons.push(`[容错] 引擎无损吸收(${tag})`);
                     } else if (pctRatio < 0.5) {
                         score += 50;
                         matchReasons.push(`[抢救] 挽救高危断档(${tag})`);
@@ -722,7 +877,7 @@ function updateDrafts() {
                         score += 20;
                         matchReasons.push(`[润滑] 缓解运转迟缓(${tag})`);
                     } else {
-                        score += 5;
+                        score += 10;
                         matchReasons.push(`[微调] 趋近完美成型(${tag})`);
                     }
                 });
@@ -743,13 +898,9 @@ function updateDrafts() {
             }
             tr.appendChild(tdEval);
 
-            // -- 第四列：负载影响计算 (接入出牌自由度判定) --
             let tdLoad = document.createElement('td');
             tdLoad.style.padding = "6px 4px";
             tdLoad.style.textAlign = "center";
-
-            let dStats = (typeof parseCardStats === 'function') ? parseCardStats(draftCard, draftCard.isUpgraded) : { cost: 0 };
-            let draftCardCost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
 
             let newAvgCost = (deckSize + 1 > 0) ? ((currentTotalEnergyCost + draftCardCost) / (deckSize + 1)) : 0;
             let deltaCost = newAvgCost - currentAvgCost;
@@ -771,59 +922,87 @@ function updateDrafts() {
             }
             tr.appendChild(tdLoad);
 
-            // -- 第五列：操作动作 --
             let tdAction = document.createElement('td');
             tdAction.style.textAlign = "center";
 
-            let addBtn = document.createElement('button');
-            addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-            addBtn.title = "直接加入卡组";
+            if (currentAppMode === 'sandbox') {
+                if (draftCard.selected && draftCard._linkedCard && !myDeck.includes(draftCard._linkedCard)) {
+                    draftCard.selected = false;
+                    draftCard._linkedCard = null;
+                }
+            }
 
-            addBtn.style.cssText = `
-                border: 1px solid #e0e4d8; background: transparent; color: #aab2b8; 
-                border-radius: 6px; width: 30px; height: 30px; 
-                cursor: pointer; display: flex; align-items: center; justify-content: center;
-                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto;
+            let isChecked = draftCard.selected === true;
+            let chkBtn = document.createElement('button');
+            chkBtn.title = currentAppMode === 'live' ? "作为幻影加入推演" : "物理加入当前卡组";
+
+            chkBtn.style.cssText = `
+                border: 2px solid ${isChecked ? '#27ae60' : '#e0e4d8'}; 
+                background: ${isChecked ? '#27ae60' : 'transparent'}; 
+                color: ${isChecked ? 'white' : 'transparent'}; 
+                border-radius: 6px; width: 28px; height: 28px; 
+                cursor: pointer; display: flex; align-items: center; justify-content: center; 
+                transition: all 0.2s ease; margin: 0 auto;
+                box-shadow: ${isChecked ? '0 2px 6px rgba(39, 174, 96, 0.2)' : 'none'};
             `;
 
-            addBtn.onmouseover = () => {
-                addBtn.style.background = "#27ae60";
-                addBtn.style.color = "white";
-                addBtn.style.border = "1px solid #27ae60";
-                addBtn.style.transform = "scale(1.15)";
-                addBtn.style.boxShadow = "0 4px 10px rgba(39, 174, 96, 0.3)";
+            chkBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+            chkBtn.onmouseover = () => {
+                chkBtn.style.background = "#27ae60";
+                chkBtn.style.color = "white";
+                chkBtn.style.border = "2px solid #27ae60";
+                chkBtn.style.boxShadow = "0 4px 10px rgba(39, 174, 96, 0.3)";
+                chkBtn.style.transform = "translateY(-1px)";
             };
 
-            addBtn.onmouseout = () => {
-                addBtn.style.background = "transparent";
-                addBtn.style.color = "#aab2b8";
-                addBtn.style.border = "1px solid #e0e4d8";
-                addBtn.style.transform = "scale(1)";
-                addBtn.style.boxShadow = "none";
+            chkBtn.onmouseout = () => {
+                if (draftCard.selected) {
+                    chkBtn.style.background = "#27ae60";
+                    chkBtn.style.color = "white";
+                    chkBtn.style.border = "2px solid #27ae60";
+                    chkBtn.style.boxShadow = "0 2px 6px rgba(39, 174, 96, 0.2)";
+                } else {
+                    chkBtn.style.background = "transparent";
+                    chkBtn.style.color = "transparent";
+                    chkBtn.style.border = "2px solid #e0e4d8";
+                    chkBtn.style.boxShadow = "none";
+                }
+                chkBtn.style.transform = "translateY(0)";
             };
 
-            addBtn.onclick = () => {
-                let cardToGrab = JSON.parse(JSON.stringify(draftCard));
-                myDeck.push(cardToGrab);
-                updateWorkshop();
+            chkBtn.onclick = () => {
+                draftCard.selected = !draftCard.selected;
+                if (currentAppMode === 'live') {
+                    updateWorkshop();
+                } else {
+                    if (draftCard.selected) {
+                        let cardToGrab = JSON.parse(JSON.stringify(draftCard));
+                        delete cardToGrab.selected;
+                        draftCard._linkedCard = cardToGrab;
+                        myDeck.push(cardToGrab);
+                    } else {
+                        if (draftCard._linkedCard) {
+                            let idx = myDeck.indexOf(draftCard._linkedCard);
+                            if (idx > -1) myDeck.splice(idx, 1);
+                            draftCard._linkedCard = null;
+                        }
+                    }
+                    updateWorkshop();
+                }
             };
 
-            tdAction.appendChild(addBtn);
+            tdAction.appendChild(chkBtn);
             tr.appendChild(tdAction);
-
             tbody.appendChild(tr);
         });
 
     } catch (error) {
         console.error("推演台渲染发生阻断性错误:", error);
-        let tbody = document.getElementById('draft-tbody');
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="5" style="color:#e74c3c; font-weight:bold; text-align:center; padding: 20px;">系统检测到严重错误，推演台引擎已停止运行。<br>请按 F12 打开控制台查看错误详情。</td></tr>`;
-        }
     }
 }
 
-// ================= 卡牌图纸库渲染 =================
+// ================= 卡牌图纸库渲染与过滤 =================
 function renderLibrary() {
     const listDiv = document.getElementById('card-list');
     listDiv.innerHTML = '';
@@ -831,8 +1010,6 @@ function renderLibrary() {
         listDiv.appendChild(createCardButton(cardName, allCards[cardName]));
     }
 }
-
-// ================= 搜索与筛选系统 (终极防弹版) =================
 
 function filterCards() {
     try {
@@ -849,18 +1026,14 @@ function filterCards() {
 
         Object.keys(allCards).forEach(cardId => {
             let card = allCards[cardId];
-
-            // 强转 String，防止极端卡牌数据缺失导致报错中断
             let cardName = String(card.Name_ZHS || card.name || cardId);
 
-            // 1. 文本与拼音双核匹配逻辑
             let textMatch = false;
             if (searchInput === "") {
                 textMatch = true;
             } else {
                 let isNameMatch = cardName.toLowerCase().includes(searchInput);
                 let isPinyinMatch = false;
-
                 try {
                     if (typeof pinyinPro !== 'undefined') {
                         let pyArray = pinyinPro.pinyin(cardName, { pattern: 'first', type: 'array' });
@@ -869,47 +1042,32 @@ function filterCards() {
                             isPinyinMatch = pyString.includes(searchInput);
                         }
                     }
-                } catch(e) {
-                    // 静默忽略拼音报错
-                }
-
+                } catch(e) {}
                 textMatch = isNameMatch || isPinyinMatch;
             }
 
-            // 2. 职业匹配逻辑 (翻译官与无色收容所)
-            // 读取图纸中的 Class 字段，并强制转为小写以统一标准
             let cardClass = String(card.Class || "").toLowerCase();
             let classMatch = false;
 
-            if (classFilter === 'all') {
-                classMatch = true;
-            } else if (classFilter === 'colorless') {
-                // 排除法：只要不是这5个基础职业，统统算作“无色及其他”（包含 Token, Colorless, Curse 等）
+            if (classFilter === 'all') classMatch = true;
+            else if (classFilter === 'colorless') {
                 const mainClasses = ['ironclad', 'silent', 'regent', 'necrobinder', 'defect'];
                 classMatch = !mainClasses.includes(cardClass);
             } else {
-                // 精准匹配基础职业
                 classMatch = (cardClass === classFilter);
             }
 
-            // 3. 类型匹配逻辑
             let cardType = card.Type || card.type || "";
             let typeMatch = (typeFilter === 'all') || (cardType === typeFilter);
 
-            // 4. 费用匹配逻辑
             let costMatch = true;
             if (costFilter !== 'all') {
-                let stats = (typeof parseCardStats === 'function') ? parseCardStats(card, false) : { cost: parseInt(card.Cost || 0) };
+                let stats = parseCardStats(card, false);
                 let costVal = stats.cost;
-
-                if (costFilter === '3') {
-                    costMatch = (typeof costVal === 'number' && costVal >= 3);
-                } else {
-                    costMatch = (costVal === parseInt(costFilter));
-                }
+                if (costFilter === '3') costMatch = (typeof costVal === 'number' && costVal >= 3);
+                else costMatch = (costVal === parseInt(costFilter));
             }
 
-            // 综合判定
             if (textMatch && classMatch && typeMatch && costMatch) {
                 visibleCount++;
                 let btn = createCardButton(cardId, card, "library");
@@ -917,11 +1075,8 @@ function filterCards() {
             }
         });
 
-        // 更新数量
         let countBadge = document.getElementById('card-count');
-        if (countBadge) {
-            countBadge.innerText = visibleCount;
-        }
+        if (countBadge) countBadge.innerText = visibleCount;
 
     } catch (error) {
         console.error("筛选引擎发生阻断性错误:", error);
@@ -934,19 +1089,16 @@ async function loadCards() {
         const response = await fetch('STS2_Card_Database_ZHS.json?v=' + new Date().getTime());
         allCards = await response.json();
 
-        // 核心新增：在生成卡组界面前，优先从硬盘读取上次关闭时的职业，并强行改变下拉框的值
         const lastJob = localStorage.getItem('SpireV2_LastJob');
         if (lastJob) {
             const jobSelect = document.getElementById('job-select');
-            if (jobSelect) {
-                jobSelect.value = lastJob;
-            }
+            if (jobSelect) jobSelect.value = lastJob;
         }
 
         renderSaveSlots();
         renderLibrary();
         filterCards();
-        loadDeckFromDisk(true); // 首次启动，直接读取当前选中的存档
+        loadDeckFromDisk(true);
 
     } catch (error) {
         console.error("加载失败:", error);
@@ -954,95 +1106,94 @@ async function loadCards() {
     }
 }
 
-window.dropToDraft = function(e) {
-    e.preventDefault();
-    let cardId = e.dataTransfer.getData('cardId');
-    let isUpg = e.dataTransfer.getData('isUpgraded') === 'true';
-    if (cardId && allCards[cardId]) {
-        myDrafts.push({ ...allCards[cardId], id: cardId, isUpgraded: isUpg });
-        updateDrafts();
-    }
-};
-
-// 绑定UI事件：确保你的HTML里的下拉框有相应的事件触发
 document.getElementById('save-slot')?.addEventListener('change', () => loadDeckFromDisk(false));
 
-// ================= 推演台管理 =================
-// 清空推演台所有候选卡牌
 function clearDrafts() {
-    if (myDrafts.length > 0 && confirm("确定要清空推演台吗？")) {
+    if (myDrafts.length > 0) {
         myDrafts = [];
         updateDrafts();
+        updateWorkshop();
     }
 }
 
-// ================= 数据持久化备份引擎 =================
-
-// 导出字典：将本地存储中的鉴定数据打包成 JSON 文件下载
+// ================= 数据字典持久化 =================
 function exportDictionary() {
     const dict = localStorage.getItem('SpireV2_Dictionary');
-    if (!dict || dict === '{}') {
-        alert("当前字典为空，无需备份。");
-        return;
-    }
-
-    // 创建 Blob 对象，模拟文件数据
+    if (!dict || dict === '{}') { alert("当前字典为空，无需备份。"); return; }
     const blob = new Blob([dict], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
-    // 创建虚拟链接并触发下载
     const a = document.createElement('a');
     a.href = url;
     a.download = `NeowsBigForge_Backup_${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a);
     a.click();
-
-    // 清理临时资源
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
-// 导入字典：读取上传的 JSON 文件并合并/覆盖当前本地存储
 function importDictionary(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const importedData = JSON.parse(e.target.result);
-
-            // 简单校验格式是否正确
             if (typeof importedData !== 'object') throw new Error("无效的字典格式");
 
-            if (confirm("导入将覆盖当前浏览器的鉴定数据，确定继续吗？")) {
-                localStorage.setItem('SpireV2_Dictionary', JSON.stringify(importedData));
+            if (confirm("导入将执行智能合并：保留最新鉴定，补充缺失数据。确定继续吗？")) {
+                let mergedCount = 0;
+                let skipCount = 0;
 
-                // 重新加载页面变量并刷新 UI
-                cardDictionary = importedData;
+                Object.keys(importedData).forEach(key => {
+                    let newCard = importedData[key];
+                    let oldCard = cardDictionary[key];
+
+                    if (!oldCard) {
+                        cardDictionary[key] = newCard;
+                        mergedCount++;
+                        return;
+                    }
+
+                    let newHasTags = newCard.hasTags !== undefined ? newCard.hasTags : (newCard.tier !== "" || (newCard.tags && newCard.tags.length > 0));
+                    let oldHasTags = oldCard.hasTags !== undefined ? oldCard.hasTags : (oldCard.tier !== "" || (oldCard.tags && oldCard.tags.length > 0));
+                    let newTime = newCard.lastModified || 0;
+                    let oldTime = oldCard.lastModified || 0;
+
+                    if (!newHasTags && oldHasTags) {
+                        skipCount++;
+                    } else if (newHasTags && !oldHasTags) {
+                        cardDictionary[key] = newCard;
+                        mergedCount++;
+                    } else {
+                        if (newTime >= oldTime) {
+                            cardDictionary[key] = newCard;
+                            mergedCount++;
+                        } else {
+                            skipCount++;
+                        }
+                    }
+                });
+
+                localStorage.setItem('SpireV2_Dictionary', JSON.stringify(cardDictionary));
                 renderLibrary();
                 updateWorkshop();
-                alert("导入成功！已同步最新鉴定方案。");
+                alert(`智能合并完成！\n新增或更新了 ${mergedCount} 条记录。\n保留了 ${skipCount} 条本地更新记录。`);
             }
         } catch (err) {
             alert("导入失败：请确保文件是正确的 JSON 备份。");
-            console.error(err);
         }
     };
     reader.readAsText(file);
-    // 重置 input，允许重复导入相同文件
     event.target.value = '';
 }
 
-// 能量助手逻辑
+// ================= 能量助手逻辑 =================
 function toggleEnergyHelper() {
     const modal = document.getElementById('energy-helper-modal');
     modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
     if(modal.style.display === 'flex') updateHelperLogic();
 }
 
-// 监听动态输入
-// 替换为全新的七回合推演计算核心
 function updateHelperLogic() {
     const base = parseFloat(document.getElementById('calc-base').value || 3);
     const constant = parseFloat(document.getElementById('calc-constant').value || 0);
@@ -1055,41 +1206,28 @@ function updateHelperLogic() {
     let turnEnergies = [];
     let totalEnergy = 0;
 
-    // 核心机制：按时间轴推演 1 到 7 回合
     for (let i = 1; i <= 7; i++) {
         let currentTurnEnergy = base + constant;
-
-        // 首回合逻辑
         if (i === 1) {
             currentTurnEnergy += burst;
             currentTurnEnergy -= breadMinus;
         } else {
-            // 后续回合逻辑 (从第2回合开始生效)
             currentTurnEnergy += breadPlus;
         }
-
-        // 周期逻辑 (例如每3回合触发，则在第3、第6回合生效)
         if (periodVal > 0 && periodN > 0 && i % periodN === 0) {
             currentTurnEnergy += periodVal;
         }
-
-        // 现实修正：防止能量出现负数
         currentTurnEnergy = Math.max(0, currentTurnEnergy);
-
         turnEnergies.push(currentTurnEnergy);
         totalEnergy += currentTurnEnergy;
     }
 
     const result = totalEnergy / 7;
-
     document.getElementById('calc-result').innerText = `沙盘等效值: ${result.toFixed(2)}`;
-    // 展示每一回合的具体能量，所见即所得
     document.getElementById('calc-formula').innerText = `明细: (${turnEnergies.join(' + ')}) / 7`;
-
     window.lastCalcResult = result;
 }
 
-// 辅助重置功能
 function resetHelper() {
     document.getElementById('calc-base').value = 3;
     document.getElementById('calc-constant').value = 0;
@@ -1109,5 +1247,796 @@ function applyEnergyResult() {
     }
 }
 
-// 启动引擎
+// ================= 模式切换引擎 =================
+function switchAppMode(mode) {
+    if (currentAppMode === mode && document.readyState === 'complete') return;
+
+    let tabSandbox = document.getElementById('tab-sandbox');
+    let tabLive = document.getElementById('tab-live');
+    let controlsSandbox = document.getElementById('sandbox-controls');
+    let controlsLive = document.getElementById('live-controls');
+
+    let eInput = document.getElementById('energy-input');
+    let dInput = document.getElementById('draw-input');
+
+    if (currentAppMode === 'sandbox') {
+        sandboxMemoryDeck = [...myDeck];
+        if (eInput) sandboxMemoryEnergy = eInput.value;
+        if (dInput) sandboxMemoryDraw = dInput.value;
+    } else {
+        liveMemoryDeck = [...myDeck];
+        if (eInput) liveMemoryEnergy = eInput.value;
+        if (dInput) liveMemoryDraw = dInput.value;
+    }
+
+    currentAppMode = mode;
+    localStorage.setItem('neows_app_mode', mode);
+
+    if (mode === 'sandbox') {
+        tabSandbox.style.background = "#34495e";
+        tabSandbox.style.color = "white";
+        tabSandbox.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+        tabLive.style.background = "transparent";
+        tabLive.style.color = "#7f8c8d";
+        tabLive.style.boxShadow = "none";
+        controlsSandbox.style.display = "flex";
+        controlsLive.style.display = "none";
+
+        myDeck = [...sandboxMemoryDeck];
+        if (eInput) eInput.value = sandboxMemoryEnergy;
+        if (dInput) dInput.value = sandboxMemoryDraw;
+
+        if (myDeck.length === 0) {
+            if (typeof loadDeckFromDisk === 'function') loadDeckFromDisk(false);
+        }
+    } else {
+        tabLive.style.background = "#8e44ad";
+        tabLive.style.color = "white";
+        tabLive.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+        tabSandbox.style.background = "transparent";
+        tabSandbox.style.color = "#7f8c8d";
+        tabSandbox.style.boxShadow = "none";
+        controlsLive.style.display = "flex";
+        controlsSandbox.style.display = "none";
+
+        myDeck = [...liveMemoryDeck];
+        if (eInput) eInput.value = liveMemoryEnergy;
+        if (dInput) dInput.value = liveMemoryDraw;
+    }
+
+    updateWorkshop();
+}
+
+// ================= 杀戮尖塔2 解析与轮询引擎 =================
+function parseGameSave(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    let isSilent = event.isSilent === true;
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        try {
+            let rawString = e.target.result.trim();
+            let saveData = null;
+
+            if (rawString.startsWith("{")) {
+                saveData = JSON.parse(rawString);
+            } else {
+                try {
+                    let decodedString = atob(rawString);
+                    saveData = JSON.parse(decodedString);
+                } catch (b64Error) {
+                    throw new Error("Base64 解码失败");
+                }
+            }
+
+            let rawCardsArray = null;
+            let characterId = null;
+
+            if (saveData.players && saveData.players.length > 0) {
+                rawCardsArray = saveData.players[0].deck;
+                characterId = saveData.players[0].character_id || saveData.players[0].character;
+            } else if (saveData.master_deck || saveData.cards || saveData.deck) {
+                rawCardsArray = saveData.master_deck || saveData.cards || saveData.deck;
+            }
+
+            if (!rawCardsArray || !Array.isArray(rawCardsArray)) {
+                if (!isSilent) alert("解析失败：未能提取卡组数据。");
+                return;
+            }
+
+            if (!isSilent) {
+                if (!confirm(`成功读取！共 ${rawCardsArray.length} 张牌。\n是否覆盖？`)) {
+                    event.target.value = '';
+                    return;
+                }
+            }
+
+            if (characterId) {
+                let jobSelect = document.getElementById('job-select');
+                if (jobSelect) {
+                    if (characterId.includes("REGENT")) jobSelect.value = "regent";
+                    else if (characterId.includes("IRONCLAD")) jobSelect.value = "ironclad";
+                    else if (characterId.includes("SILENT")) jobSelect.value = "silent";
+                    else if (characterId.includes("NECROBINDER")) jobSelect.value = "necrobinder";
+                    else if (characterId.includes("DEFECT")) jobSelect.value = "defect";
+                    if (typeof switchClassWorkspace === 'function') switchClassWorkspace();
+                }
+            }
+
+            let importedDeck = [];
+            let unmappedCards = [];
+
+            rawCardsArray.forEach(cardItem => {
+                let gameId = "";
+                let isUpgraded = false;
+
+                if (typeof cardItem === "string") {
+                    let parts = cardItem.split("+");
+                    gameId = parts[0];
+                    isUpgraded = parts.length > 1 && parseInt(parts[1]) > 0;
+                } else if (typeof cardItem === "object") {
+                    gameId = cardItem.id;
+                    isUpgraded = cardItem.current_upgrade_level && cardItem.current_upgrade_level > 0;
+                }
+
+                if (gameId) {
+                    let noPrefixId = gameId.replace("CARD.", "");
+                    let cleanGameId = noPrefixId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+                    let realKey = Object.keys(allCards).find(k => {
+                        let cleanDictKey = k.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+                        return cleanDictKey === cleanGameId;
+                    });
+
+                    if (realKey) {
+                        importedDeck.push({ ...allCards[realKey], id: realKey, isUpgraded: isUpgraded });
+                    } else {
+                        unmappedCards.push(gameId);
+                    }
+                }
+            });
+
+            myDeck = importedDeck;
+            liveMemoryDeck = [...importedDeck];
+
+            if (currentAppMode !== 'live') {
+                switchAppMode('live');
+            } else {
+                updateWorkshop();
+            }
+
+            if (unmappedCards.length > 0) {
+                console.warn("未映射卡牌清单：", unmappedCards);
+                if (!isSilent) alert(`成功导入 ${importedDeck.length} 张。\n有 ${unmappedCards.length} 张未能识别已跳过。`);
+            } else {
+                if (!isSilent) alert("解析完美完成！");
+            }
+
+        } catch (error) {
+            console.error("解析崩溃：", error);
+            if (!isSilent) alert("读取失败：格式错误。");
+        }
+        if (event.target) event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
+// 1. 底层支持：IndexedDB 句柄存储引擎
+function openHandleDB() {
+    return new Promise((resolve, reject) => {
+        let request = indexedDB.open('STS2_Dir_DB', 1);
+        request.onupgradeneeded = e => {
+            e.target.result.createObjectStore('handles');
+        };
+        request.onsuccess = e => resolve(e.target.result);
+        request.onerror = e => reject(e.target.error);
+    });
+}
+
+async function saveDirHandleToDB(handle) {
+    try {
+        let db = await openHandleDB();
+        db.transaction('handles', 'readwrite').objectStore('handles').put(handle, 'savedSaveDir');
+    } catch(e) { console.warn("句柄保存失败", e); }
+}
+
+async function loadDirHandleFromDB() {
+    try {
+        let db = await openHandleDB();
+        return new Promise(resolve => {
+            let req = db.transaction('handles').objectStore('handles').get('savedSaveDir');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    } catch(e) { return null; }
+}
+
+let globalDirHandle = null;
+let saveFilesMap = new Map();
+let autoSyncInterval = null;
+let lastKnownModifiedTime = 0;
+let isAutoSyncEnabled = false;
+let useLocalAgent = false;
+
+async function bindSaveDirectory() {
+    try {
+        if (!window.showDirectoryPicker) {
+            alert("抱歉，您的浏览器不支持高级目录挂载功能。");
+            return;
+        }
+        globalDirHandle = await window.showDirectoryPicker({ mode: 'read' });
+        await saveDirHandleToDB(globalDirHandle);
+
+        activateDirectoryUI();
+        await refreshAndLoadHotSave();
+    } catch (error) {
+        console.warn("目录绑定被取消:", error);
+    }
+}
+
+async function tryAutoMountDirectory() {
+    const statusText = document.getElementById('dir-status-text');
+
+    try {
+        let response = await fetch("http://127.0.0.1:12026/ping");
+        if (response.ok) {
+            useLocalAgent = true;
+            globalDirHandle = null;
+            statusText.style.color = "#27ae60";
+            statusText.innerText = "● 极速同步已就绪 (无需手动绑定文件夹)";
+
+            activateDirectoryUI();
+            startPolling();
+            return;
+        }
+    } catch(e) {
+        useLocalAgent = false;
+    }
+
+    let handle = await loadDirHandleFromDB();
+    if (handle) {
+        let perm = await handle.queryPermission({ mode: 'read' });
+        if (perm === 'granted') {
+            globalDirHandle = handle;
+            activateDirectoryUI();
+            await refreshAndLoadHotSave();
+        } else {
+            statusText.innerHTML = `<button onclick="requestRememberedPermission()" style="padding:4px 8px; background:#3498db; color:white; border:none; border-radius:4px; cursor:pointer;">[一键恢复] 允许访问上次的手动目录</button>`;
+        }
+    }
+}
+
+async function requestRememberedPermission() {
+    let handle = await loadDirHandleFromDB();
+    if (handle) {
+        let perm = await handle.requestPermission({ mode: 'read' });
+        if (perm === 'granted') {
+            globalDirHandle = handle;
+            activateDirectoryUI();
+            await refreshAndLoadHotSave();
+        } else {
+            document.getElementById('dir-status-text').innerText = "恢复权限被拒绝，请重新手动绑定。";
+        }
+    }
+}
+
+function activateDirectoryUI() {
+    document.getElementById('bind-dir-btn').style.display = 'none';
+    document.getElementById('auto-save-selector').style.display = 'block';
+
+    let hotReloadBtn = document.getElementById('hot-reload-btn');
+    if (hotReloadBtn) hotReloadBtn.style.display = useLocalAgent ? 'none' : 'block';
+
+    // 核心修复：寻找新的呼吸灯，不再找旧的复选框
+    let indicator = document.getElementById('live-indicator');
+    if (indicator && useLocalAgent) indicator.style.display = 'flex';
+
+    let rebindBtn = document.getElementById('rebind-dir-btn');
+    if (rebindBtn) rebindBtn.style.display = 'inline-block';
+
+    if (!useLocalAgent && globalDirHandle) {
+        document.getElementById('dir-status-text').innerText = `已挂载: ${globalDirHandle.name} (已记忆)`;
+    }
+}
+
+function parseMetadataFromText(text) {
+    if (!text) return "[空文件]";
+    let data;
+    if (text.trim().startsWith("{")) {
+        data = JSON.parse(text);
+    } else {
+        try { data = JSON.parse(atob(text.trim())); }
+        catch (e) { return "[格式不支持]"; }
+    }
+    const charMap = {
+        "CHARACTER.REGENT": "储君", "CHARACTER.IRONCLAD": "铁甲战士",
+        "CHARACTER.SILENT": "静默猎手", "CHARACTER.DEFECT": "故障机器人",
+        "CHARACTER.NECROBINDER": "亡灵契约师"
+    };
+    let charId = data.players?.[0]?.character_id || data.players?.[0]?.character || data.character_chosen || "未知";
+    let charName = charMap[charId] || charId.replace("CHARACTER.", "");
+    let asc = data.ascension_level !== undefined ? `进阶${data.ascension_level}` : (data.ascension !== undefined ? `进阶${data.ascension}` : "无进阶");
+    let floor = data.floor_num || (data.map_point_history ? data.map_point_history.length : "0");
+    let runStatus = "";
+    if (data.win === true || data.victory === true) runStatus = " | [成功]";
+    else if (data.win === false || data.victory === false || data.was_abandoned === true || data.killed_by || data.killed_by_encounter || data.killed_by_event) runStatus = " | [失败]";
+    return `${charName} | ${asc} | 第${floor}层${runStatus}`;
+}
+
+async function peekSaveMetadata(fileHandle) {
+    try {
+        const file = await fileHandle.getFile();
+        const text = await file.text();
+        return parseMetadataFromText(text);
+    } catch (e) {
+        return "[解析失败]";
+    }
+}
+
+async function refreshAndLoadHotSave() {
+    saveFilesMap.clear();
+    let selector = document.getElementById('auto-save-selector');
+    let currentSelection = selector.value;
+    selector.innerHTML = '';
+    let parsedFiles = [];
+
+    try {
+        if (useLocalAgent) {
+            // ---------- 极速模式：通过 API 拉取文件列表与历史记录 ----------
+            let res = await fetch("http://127.0.0.1:12026/list");
+
+            // 核心修复：如果游戏没开或者没有存档，优雅地提示并退出，不报错
+            if (res.status === 404) {
+                document.getElementById('dir-status-text').innerText = "[极速待命] 尚未侦测到游戏存档，请在游戏中开启对局...";
+                return;
+            }
+            if (!res.ok) throw new Error("Agent API 失败");
+
+            let data = await res.json();
+            let files = data.saves || [];
+
+            files.sort((a, b) => b.mtime - a.mtime);
+            files = files.slice(0, 40);
+
+            for (let f of files) {
+                let sortWeight = 0;
+                let displayName = "";
+                let nameLower = f.name.toLowerCase();
+
+                try {
+                    let textRes = await fetch("http://127.0.0.1:12026/get?f=" + encodeURIComponent(f.name));
+                    if (!textRes.ok) continue;
+                    let text = await textRes.text();
+                    let metadata = parseMetadataFromText(text);
+
+                    if (nameLower === 'current_run.save') {
+                        sortWeight = 99999999999;
+                        displayName = `🟢 [进行中] ${metadata} (实时进度)`;
+                        lastKnownModifiedTime = text.length;
+                    } else if (nameLower === 'current_run.save.backup') {
+                        sortWeight = 99999999998;
+                        displayName = `[备用档] ${metadata} (防崩快照)`;
+                    } else {
+                        let timestampStr = nameLower.replace(/\D/g, '');
+                        if (timestampStr) {
+                            let isBackup = nameLower.endsWith('.backup');
+                            sortWeight = parseInt(timestampStr) - (isBackup ? 1 : 0);
+                            let dateObj = new Date(parseInt(timestampStr) * 1000);
+                            let m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                            let d = dateObj.getDate().toString().padStart(2, '0');
+                            let h = dateObj.getHours().toString().padStart(2, '0');
+                            let min = dateObj.getMinutes().toString().padStart(2, '0');
+                            let prefixTag = isBackup ? "[历史备份]" : "[已结算]";
+                            displayName = `${prefixTag} ${m}-${d} ${h}:${min} ${metadata}`;
+                        }
+                    }
+                    if (displayName) {
+                        parsedFiles.push({ handle: f.name, weight: sortWeight, name: displayName });
+                    }
+                } catch(e){}
+            }
+
+        } else {
+            if (!globalDirHandle) return;
+            for await (const entry of globalDirHandle.values()) {
+                if (entry.kind === 'file') {
+                    const name = entry.name.toLowerCase();
+                    if (name === 'current_run.save' || name === 'current_run.save.backup' || name.endsWith('.run') || name.endsWith('.backup')) {
+                        let file = await entry.getFile();
+                        parsedFiles.push({ handle: entry, weight: 0, name: "", _file: file });
+                    }
+                }
+            }
+            try {
+                const historyDir = await globalDirHandle.getDirectoryHandle('history');
+                for await (const entry of historyDir.values()) {
+                    if (entry.kind === 'file') {
+                        const name = entry.name.toLowerCase();
+                        if (name.endsWith('.run') || name.endsWith('.backup')) {
+                            let file = await entry.getFile();
+                            parsedFiles.push({ handle: entry, weight: 0, name: "", _file: file });
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            for (let pf of parsedFiles) {
+                let fileHandle = pf.handle;
+                let fileObj = pf._file;
+                let nameLower = fileHandle.name.toLowerCase();
+
+                if (nameLower === 'current_run.save') {
+                    pf.weight = 99999999999;
+                    let metadata = await peekSaveMetadata(fileHandle);
+                    pf.name = `🟢 [进行中] ${metadata} (实时进度)`;
+                    lastKnownModifiedTime = fileObj.lastModified;
+                } else if (nameLower === 'current_run.save.backup') {
+                    pf.weight = 99999999998;
+                    let metadata = await peekSaveMetadata(fileHandle);
+                    pf.name = `[备用档] ${metadata} (防崩快照)`;
+                } else {
+                    let timestampStr = fileHandle.name.replace(/\D/g, '');
+                    if (timestampStr) {
+                        let isBackup = nameLower.endsWith('.backup');
+                        pf.weight = parseInt(timestampStr) - (isBackup ? 1 : 0);
+                        let metadata = await peekSaveMetadata(fileHandle);
+                        let dateObj = new Date(parseInt(timestampStr) * 1000);
+                        let m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                        let d = dateObj.getDate().toString().padStart(2, '0');
+                        let h = dateObj.getHours().toString().padStart(2, '0');
+                        let min = dateObj.getMinutes().toString().padStart(2, '0');
+                        let prefixTag = isBackup ? "[历史备份]" : "[已结算]";
+                        pf.name = `${prefixTag} ${m}-${d} ${h}:${min} ${metadata}`;
+                    }
+                }
+            }
+        }
+
+        if (parsedFiles.length === 0) {
+            document.getElementById('dir-status-text').innerText = "未扫描到 current_run 或 history 存档。";
+            return;
+        }
+
+        parsedFiles.sort((a, b) => b.weight - a.weight);
+        parsedFiles.forEach(pf => {
+            let option = document.createElement('option');
+            option.value = pf.handle.name || pf.handle;
+            option.text = pf.name;
+            selector.appendChild(option);
+            saveFilesMap.set(option.value, pf.handle);
+        });
+
+        if (currentSelection && saveFilesMap.has(currentSelection)) {
+            selector.value = currentSelection;
+        } else {
+            await loadSelectedHotSave();
+        }
+    } catch (error) {
+        console.warn("扫描文件夹失败:", error);
+        if (error.name === 'NotFoundError') {
+            globalDirHandle = null;
+            document.getElementById('dir-status-text').innerText = "旧版挂载的文件夹已失效，请重新挂载或部署极速后台。";
+            document.getElementById('bind-dir-btn').style.display = 'inline-block';
+            document.getElementById('auto-save-selector').style.display = 'none';
+        }
+    }
+}
+
+async function loadSelectedHotSave() {
+    let selector = document.getElementById('auto-save-selector');
+    let selectedName = selector.value;
+    if (!selectedName) return;
+
+    let handle = saveFilesMap.get(selectedName);
+    if (!handle) return;
+
+    try {
+        if (useLocalAgent) {
+            let res = await fetch("http://127.0.0.1:12026/get?f=" + encodeURIComponent(handle));
+            let text = await res.text();
+            let file = new File([text], selectedName, { type: "application/json" });
+            let fakeEvent = { target: { files: [file], value: '' }, isSilent: true };
+            parseGameSave(fakeEvent);
+        } else {
+            const file = await handle.getFile();
+            let fakeEvent = { target: { files: [file], value: '' }, isSilent: true };
+            parseGameSave(fakeEvent);
+        }
+    } catch (error) {
+        console.error("读取流失败:", error);
+    }
+}
+
+async function quickHotReload() {
+    if (!saveFilesMap.has('current_run.save')) {
+        await refreshAndLoadHotSave();
+        return;
+    }
+    try {
+        if (useLocalAgent) {
+            let res = await fetch("http://127.0.0.1:12026/get?f=current_run.save");
+            if (!res.ok) return;
+            let saveText = await res.text();
+            let fileObj = new File([saveText], "current_run.save", { type: "application/json" });
+            let fakeEvent = { target: { files: [fileObj], value: '' }, isSilent: true };
+            if (typeof parseGameSave === 'function') parseGameSave(fakeEvent);
+
+            let metadata = parseMetadataFromText(saveText);
+            let selector = document.getElementById('auto-save-selector');
+            if (selector) {
+                let option = Array.from(selector.options).find(opt => opt.value === 'current_run.save');
+                if (option) option.text = `🟢 [进行中] ${metadata} (实时进度)`;
+                selector.value = 'current_run.save';
+            }
+
+            lastKnownModifiedTime = saveText.length;
+            let timeStr = new Date().toLocaleTimeString();
+            document.getElementById('dir-status-text').innerText = `● [极速模式] 已在 ${timeStr} 自动同步。`;
+        } else {
+            let fileHandle = saveFilesMap.get('current_run.save');
+            let fileObj = await fileHandle.getFile();
+            let fakeEvent = { target: { files: [fileObj], value: '' }, isSilent: true };
+            if (typeof parseGameSave === 'function') parseGameSave(fakeEvent);
+
+            let metadata = await peekSaveMetadata(fileHandle);
+            let selector = document.getElementById('auto-save-selector');
+            if (selector) {
+                let option = Array.from(selector.options).find(opt => opt.value === 'current_run.save');
+                if (option) option.text = `🟢 [进行中] ${metadata} (实时进度)`;
+                selector.value = 'current_run.save';
+            }
+            lastKnownModifiedTime = fileObj.lastModified;
+            let timeStr = new Date().toLocaleTimeString();
+            document.getElementById('dir-status-text').innerText = `● 已在 ${timeStr} 拉取最新卡组。`;
+        }
+    } catch (error) {
+        console.error("拉取失败:", error);
+    }
+}
+
+async function checkFileChanges() {
+    try {
+        if (useLocalAgent) {
+            let response = await fetch("http://127.0.0.1:12026/get?f=current_run.save");
+            if (response.status === 404 || !response.ok) return;
+
+            let saveText = await response.text();
+            if (saveText.length !== lastKnownModifiedTime) {
+                await quickHotReload();
+            }
+            return;
+        }
+
+        if (!globalDirHandle) return;
+        let fileHandle = saveFilesMap.get('current_run.save');
+        if (!fileHandle) return;
+
+        let fileObj = await fileHandle.getFile();
+        if (fileObj.lastModified > lastKnownModifiedTime) {
+            await quickHotReload();
+        }
+    } catch (e) {}
+}
+
+// ================= 位置：app.js 中下部 (替换轮询控制逻辑) =================
+
+// 核心瘦身：彻底移除 toggleAutoSync，改为底层强制接管
+function startPolling() {
+    if (autoSyncInterval === null) {
+        checkFileChanges();
+        autoSyncInterval = setInterval(checkFileChanges, 2000);
+        document.getElementById('dir-status-text').innerText = "● 极速同步已就绪 (切出网页将自动休眠省电)";
+    }
+}
+
+function stopPolling() {
+    if (autoSyncInterval !== null) {
+        clearInterval(autoSyncInterval);
+        autoSyncInterval = null;
+        document.getElementById('dir-status-text').innerText = "○ 网页已挂起，轮询暂停。";
+    }
+}
+
+// 智能切后台休眠：不浪费一滴 CPU 性能
+document.addEventListener("visibilitychange", () => {
+    // 只有在连了代理或者挂了文件夹的情况下，才需要管轮询
+    if (!useLocalAgent && !globalDirHandle) return;
+
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        startPolling();
+    }
+});
+
+(function initializeAppMode() {
+    let savedMode = localStorage.getItem('neows_app_mode') || 'live';
+    currentAppMode = '';
+    switchAppMode(savedMode);
+})();
+
+// 核心初始化：优先尝试连接极速脚本，失败则回退到沙盒记忆
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        let response = await fetch("http://127.0.0.1:12026/ping");
+        if (response.ok) {
+            // 1. 确立极速直连环境
+            useLocalAgent = true;
+            globalDirHandle = null;
+
+            // 2. 渲染 UI (这会调用 activateDirectoryUI 自动隐藏无用按钮并显示呼吸灯)
+            document.getElementById('dir-status-text').innerText = "● 极速同步已就绪 (切出网页将自动休眠省电)";
+            document.getElementById('dir-status-text').style.color = "#27ae60";
+            activateDirectoryUI();
+
+            // 3. 强行拉取历史对局列表，填充下拉框
+            await refreshAndLoadHotSave();
+
+            // 4. 霸道总裁式直接启动：不问用户，直接开启 2 秒心跳轮询
+            startPolling();
+        } else {
+            tryAutoMountDirectory();
+        }
+    } catch(e) {
+        tryAutoMountDirectory();
+    }
+});
+
 loadCards();
+
+// ================= 一键极速部署引擎 =================
+function downloadDeployScript() {
+    let msg = "这将升级您的后台引擎 (deploy_agent.bat)。\n\n" +
+        "核心升级：\n" +
+        "1. 恢复了对历史对局(history)的完整读取\n" +
+        "2. 完美修复了下拉框不显示的 Bug\n\n" +
+        "是否确认下载？";
+    if (!confirm(msg)) return;
+
+    const pythonCode = `import http.server
+import socketserver
+import os
+import glob
+import json
+import urllib.parse
+
+PORT = 12026
+
+def get_active_dir():
+    search_paths = [
+        os.path.join(os.environ.get('APPDATA', ''), 'SlayTheSpire2', 'steam', '*', 'profile*', 'saves', 'current_run.save'),
+        "C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/Saves/current_run.save",
+        os.path.join(os.path.dirname(__file__), 'current_run.save')
+    ]
+    found_files = []
+    for p in search_paths: found_files.extend(glob.glob(p))
+    if not found_files: return None
+    found_files.sort(key=os.path.getmtime, reverse=True)
+    return os.path.dirname(found_files[0])
+
+class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format, *args): pass
+    
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        super().end_headers()
+        
+    def do_OPTIONS(self):
+        self.send_response(200, "ok"); self.end_headers()
+        
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        query = urllib.parse.parse_qs(parsed.query)
+
+        if path == '/ping':
+            self.send_response(200); self.end_headers(); self.wfile.write(b"pong"); return
+
+        base_dir = get_active_dir()
+        if not base_dir:
+            self.send_error(404, "No save directory found"); return
+
+        if path == '/list':
+            res = {'saves': []}
+            def add_file(filepath, virt_name):
+                if os.path.exists(filepath):
+                    res['saves'].append({'name': virt_name, 'mtime': os.path.getmtime(filepath)})
+
+            add_file(os.path.join(base_dir, 'current_run.save'), 'current_run.save')
+            add_file(os.path.join(base_dir, 'current_run.save.backup'), 'current_run.save.backup')
+
+            prof_dir = os.path.dirname(base_dir)
+            hist_paths = [os.path.join(prof_dir, 'history'), os.path.join(base_dir, 'history')]
+            hist_dir = None
+            for hp in hist_paths:
+                if os.path.exists(hp): hist_dir = hp; break
+
+            if hist_dir:
+                for f in os.listdir(hist_dir):
+                    if f.endswith('.run') or f.endswith('.backup'):
+                        add_file(os.path.join(hist_dir, f), 'history/' + f)
+
+            self.send_response(200); self.send_header('Content-type', 'application/json'); self.end_headers()
+            self.wfile.write(json.dumps(res).encode('utf-8'))
+            return
+
+        if path == '/get':
+            file_rel = query.get('f', [''])[0]
+            if not file_rel: self.send_error(400); return
+            file_rel = file_rel.replace('../', '').replace('..\\\\', '')
+            
+            if file_rel.startswith('history/'):
+                prof_dir = os.path.dirname(base_dir)
+                target = os.path.join(prof_dir, 'history', file_rel.replace('history/', ''))
+                if not os.path.exists(target):
+                    target = os.path.join(base_dir, 'history', file_rel.replace('history/', ''))
+            else:
+                target = os.path.join(base_dir, file_rel)
+
+            if os.path.exists(target):
+                try:
+                    with open(target, 'r', encoding='utf-8') as f: data = f.read()
+                    self.send_response(200); self.send_header('Content-type', 'application/json'); self.end_headers()
+                    self.wfile.write(data.encode('utf-8'))
+                except Exception as e: self.send_error(500)
+            else: self.send_error(404)
+            return
+
+        self.send_error(404)
+
+if __name__ == "__main__":
+    socketserver.TCPServer.allow_reuse_address = True
+    with socketserver.TCPServer(("127.0.0.1", PORT), CORSRequestHandler) as httpd:
+        try: httpd.serve_forever()
+        except Exception: pass`;
+
+    const base64Python = btoa(unescape(encodeURIComponent(pythonCode)));
+
+    let batContent = `@echo off
+chcp 65001 >nul
+title NeowsBigForge 极速引擎部署向导
+color 0A
+
+>nul 2>&1 "%SYSTEMROOT%\\system32\\cacls.exe" "%SYSTEMROOT%\\system32\\config\\system"
+if '%errorlevel%' NEQ '0' (
+    echo [INFO] 正在请求管理员权限...
+    goto UACPrompt
+) else ( goto gotAdmin )
+
+:UACPrompt
+    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\\getadmin.vbs"
+    echo UAC.ShellExecute "cmd.exe", "/c ""%~s0""", "", "runas", 1 >> "%temp%\\getadmin.vbs"
+    cscript //nologo "%temp%\\getadmin.vbs"
+    del "%temp%\\getadmin.vbs"
+    exit /B
+
+:gotAdmin
+set "TOOL_DIR=%APPDATA%\\NeowsBigForge"
+if not exist "%TOOL_DIR%" mkdir "%TOOL_DIR%"
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$Bytes = [Convert]::FromBase64String('${base64Python}'); [IO.File]::WriteAllBytes('%TOOL_DIR%\\sts2_sync_agent.py', $Bytes)"
+
+taskkill /F /IM pythonw.exe /T >nul 2>&1
+schtasks /delete /tn "NeowsBigForge_Agent" /f >nul 2>&1
+schtasks /create /tn "NeowsBigForge_Agent" /tr "pythonw.exe \\"%TOOL_DIR%\\sts2_sync_agent.py\\"" /sc onlogon /f >nul
+start pythonw.exe "%TOOL_DIR%\\sts2_sync_agent.py"
+
+echo 部署完美收官！请刷新沙盘网页。
+pause
+`;
+
+    batContent = batContent.replace(/\r?\n/g, '\r\n');
+    const blob = new Blob(["\uFEFF" + batContent], { type: 'application/bat' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deploy_agent.bat`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
