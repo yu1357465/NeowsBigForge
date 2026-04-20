@@ -84,8 +84,28 @@
                 <option value="0">0 费</option>
                 <option value="1">1 费</option>
                 <option value="2">2 费</option>
-                <option value="3">3 费及以上</option>
+                <option value="3">≥3 费</option>
             </select>
+
+            <select id="tier-filter" onchange="filterCards()" style="padding: 4px; border-radius: 4px; border: 1px solid #bdc3c7;">
+                <option value="all">所有梯度</option>
+                <option value="S">S级 (核心)</option>
+                <option value="A">A级 (优质)</option>
+                <option value="B">B级 (平庸)</option>
+                <option value="C">C级 (特定)</option>
+                <option value="F">F级 (废牌)</option>
+                <option value="unrated">未鉴定</option>
+            </select>
+
+            <select id="tag-filter" onchange="filterCards()" style="padding: 4px; border-radius: 4px; border: 1px solid #bdc3c7;">
+                <option value="all">所有端口</option>
+                <option value="过渡输出">过渡输出</option>
+                <option value="过渡防御">过渡防御</option>
+                <option value="终端输出">终端输出</option>
+                <option value="终端防御">终端防御</option>
+                <option value="润滑运转">润滑运转</option>
+            </select>
+
         </div>
     </div>
     <div id="card-list" style="flex: 1; overflow-y: auto; align-content: flex-start;"></div>
@@ -280,10 +300,15 @@
 
 <div id="inspector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
     <div id="inspector-content-box" style="background: #fff; padding: 25px; border-radius: 12px; width: 400px; border: 3px solid #2980b9; box-shadow: 0 0 40px rgba(41, 128, 185, 0.4);">
-        <h2 style="margin-top: 0; display: flex; justify-content: space-between;">
-            <span>卡牌鉴定</span>
-            <span id="inspector-card-name" style="color: #2980b9;"></span>
-        </h2>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #ecf0f1; padding-bottom: 12px; margin-bottom: 15px;">
+            <h3 id="inspector-card-name" style="margin: 0; font-size: 1.5rem; font-weight: bold; line-height: 1.2; color: #2980b9;">
+            </h3>
+            <span style="color: #2c3e50; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; padding-bottom: 4px; white-space: nowrap;">
+                卡牌鉴定
+            </span>
+        </div>
+
         <div style="margin-bottom: 20px;">
             <h4>抓取梯度 (Tier)</h4>
             <div id="tier-container" style="display: flex; gap: 8px;"></div>
