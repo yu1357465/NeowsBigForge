@@ -1271,7 +1271,6 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     if (portContainer) {
         portContainer.innerHTML = '';
 
-        // [改动后的代码]：植入物理拦截器
         const PRIORITY_HIERARCHY = [
             { tag: "过渡输出", msg: "前期伤害匮乏！（强烈建议：优先抓取 AOE 群攻牌）" },
             { tag: "过渡防御", msg: "战损控制不足！（注意补充虚弱或群体降攻手段）" },
@@ -1281,37 +1280,46 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
         ];
 
         let topPriorityHTML = "";
+        let tacticalAlertHTML = "";
+        let strategicAlertHTML = "";
 
         if (deckSize > 0) {
-            // 第一权重拦截：如果卡组薄于 25 张，无视所有质量评分，直接发出防烧警告！
-            if (deckSize < 25) {
-                topPriorityHTML = `<div style="background:#8e44ad; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);">
-                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 结构脆弱警告：物理厚度极低</div>
-                    <div style="font-size:0.85rem; opacity:0.9;">当前仅 ${deckSize} 张牌。极易在门扉等消耗战中被彻底掏空断档，建议适度抓取防烧牌扩充底盘！</div>
-                </div>`;
-            } else {
-                for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
-                    let p = PRIORITY_HIERARCHY[i];
-                    let currentCount = tagCounts[p.tag] || 0;
-                    let reqCount = BASE_REQ[p.tag] || 1;
+            // 1. 战术雷达：永远优先扫描当前的断档死穴 (决定生死)
+            for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
+                let p = PRIORITY_HIERARCHY[i];
+                let currentCount = tagCounts[p.tag] || 0;
+                let reqCount = BASE_REQ[p.tag] || 1;
 
-                    if (currentCount < reqCount * 0.5) {
-                        topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px;">
-                            <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
-                            <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
-                        </div>`;
-                        break;
-                    }
+                if (currentCount < reqCount * 0.5) {
+                    tacticalAlertHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:8px;">
+                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
+                        <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
+                    </div>`;
+                    break;
                 }
             }
 
-            if (!topPriorityHTML) {
-                topPriorityHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
+            // 若基础生存线均已达标
+            if (!tacticalAlertHTML) {
+                tacticalAlertHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:8px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
                     <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[运转良好] 卡组结构健康</div>
                     <div style="font-size:0.85rem; opacity:0.9;">基础生存线均已达标。建议根据环境适量补充 AOE 或多段伤害以提升容错率。</div>
                 </div>`;
             }
 
+            // 2. 战略雷达：门扉防烧警告 (仅在中后期生效)
+            // 机制解析：14张牌以下属于开荒期，不触发长线警告干扰前期抓牌。15张到24张触发警告。
+            if (deckSize >= 15 && deckSize < 25) {
+                strategicAlertHTML = `<div style="background:#8e44ad; color:white; padding:8px 12px; border-radius:6px; margin-bottom:12px; border-left: 4px solid #9b59b6;">
+                    <div style="font-weight:bold; font-size:0.9rem; margin-bottom:2px;">[长线隐患] 结构脆弱 (仅 ${deckSize} 张)</div>
+                    <div style="font-size:0.75rem; opacity:0.9;">极易在后期的消耗战中被掏空，建议适度保留 C/F 级防烧垫材。</div>
+                </div>`;
+            } else {
+                // 为了布局美观，如果没有战略警告，增加一点下边距
+                tacticalAlertHTML = tacticalAlertHTML.replace('margin-bottom:8px;', 'margin-bottom:12px;');
+            }
+
+            topPriorityHTML = tacticalAlertHTML + strategicAlertHTML;
             portContainer.innerHTML += topPriorityHTML;
         }
 
