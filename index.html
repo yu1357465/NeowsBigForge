@@ -317,6 +317,16 @@
             <h4>核心端口标签</h4>
             <div id="tag-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
         </div>
+        <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px dashed #ecf0f1;">
+            <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 0.95rem; color: #2c3e50;">底层机制覆写</h4>
+            <label id="exhaust-toggle-label" style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: #f8f9fa; padding: 12px 15px; border-radius: 8px; border: 2px solid #ecf0f1; transition: all 0.2s ease;">
+                <input type="checkbox" id="inspector-is-exhaust" style="width: 20px; height: 20px; cursor: pointer; margin: 0; flex-shrink: 0;">
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <span style="font-size: 0.9rem; color: #2c3e50; font-weight: bold; line-height: 1.2;">赋予【挥发特赦】</span>
+                    <span style="font-size: 0.75rem; color: #7f8c8d; font-weight: normal; margin-top: 4px; line-height: 1.2;">强行忽略此卡的冗余污染 (具有消耗/虚无等特性)</span>
+                </div>
+            </label>
+        </div>
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button onclick="closeInspector()" class="action-btn" style="background: #f1f2f6; color: #576574;">取消</button>
             <button onclick="saveInspectorData()" class="action-btn" style="background: #27ae60; color: #ffffff;">保存鉴定</button>

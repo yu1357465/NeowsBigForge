@@ -909,6 +909,38 @@ function openInspector(cardId, cardNameZHS) {
         tagContainer.appendChild(btn);
     });
 
+    // 👇 核心升级：初始化特赦复选框，并注入动态职业主题色 👇
+    let isExhaustCheckbox = document.getElementById('inspector-is-exhaust');
+    let exhaustLabel = document.getElementById('exhaust-toggle-label');
+
+    if (isExhaustCheckbox && exhaustLabel) {
+        // 1. 读取保存的状态
+        if (cardData.isExhaust !== undefined) {
+            isExhaustCheckbox.checked = cardData.isExhaust;
+        } else {
+            let desc = (cardObj.Description || "").toLowerCase();
+            isExhaustCheckbox.checked = desc.includes("消耗") || desc.includes("exhaust") || cardObj.exhaust === true || cardObj.is_exhaust === true;
+        }
+
+        // 2. 动态吸附职业专属颜色 (比如猎手是绿色，战士是红色)
+        isExhaustCheckbox.style.accentColor = theme.hex;
+
+        // 3. 定义 UI 更新逻辑 (勾选时边框发光并填充超浅色背景)
+        let updateExhaustUI = () => {
+            if (isExhaustCheckbox.checked) {
+                exhaustLabel.style.borderColor = theme.hex;
+                exhaustLabel.style.backgroundColor = `rgba(${theme.rgb}, 0.05)`;
+            } else {
+                exhaustLabel.style.borderColor = '#ecf0f1';
+                exhaustLabel.style.backgroundColor = '#f8f9fa';
+            }
+        };
+
+        // 4. 首次打开弹窗时渲染一次，并绑定点击事件
+        updateExhaustUI();
+        isExhaustCheckbox.onchange = updateExhaustUI;
+    }
+    // 👆 升级结束 👆
     document.getElementById('inspector-modal').style.display = 'flex';
 }
 
@@ -920,9 +952,13 @@ function saveInspectorData() {
     let selectedTier = document.querySelector('.tier-btn.active')?.innerText || "";
     let selectedTags = Array.from(document.querySelectorAll('.tag-btn.active')).map(btn => btn.innerText);
 
+    // 👇 新增：获取复选框状态 👇
+    let isExhaust = document.getElementById('inspector-is-exhaust')?.checked || false;
+
     cardDictionary[currentInspectingCardId] = {
         tier: selectedTier,
         tags: selectedTags,
+        isExhaust: isExhaust, // <-- 核心新增：将物理特性写入持久化字典
         lastModified: Date.now(),
         hasTags: (selectedTier !== "" || selectedTags.length > 0)
     };
@@ -1110,8 +1146,16 @@ function updateWorkshop() {
             totalEnergyCost += stats.cost;
         }
         let lowerDesc = stats.desc.toLowerCase();
-        if (lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCount++;
-        if (lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCount++;
+        if (lowerDesc.includes("抽") || lowerDesc.includes("draw") || lowerDesc.includes("抽取")) drawCount++;
+
+        let savedInfo = cardDictionary[card.id] || {};
+        let isExhaust = false;
+        if (savedInfo.isExhaust !== undefined) {
+            isExhaust = savedInfo.isExhaust; // 玩家钦定，最高优先级
+        } else {
+            isExhaust = lowerDesc.includes("消耗") || lowerDesc.includes("exhaust") || card.exhaust === true || card.is_exhaust === true;
+        }
+        if (isExhaust) exhaustCount++;
     });
 
     let deckSize = combinedVirtualDeck.length;
@@ -1372,8 +1416,15 @@ function updateDrafts() {
                 currentTotalEnergyCost += stats.cost;
             }
             let lowerDesc = (stats.desc || "").toLowerCase();
-            if (lowerDesc.includes("抽") || lowerDesc.includes("draw")) drawCountDraft++;
-            if (lowerDesc.includes("消耗") || lowerDesc.includes("exhaust")) exhaustCountDraft++;
+            if (lowerDesc.includes("抽") || lowerDesc.includes("draw") || lowerDesc.includes("抽取")) drawCountDraft++;
+
+            let isExhaust = false;
+            if (info.isExhaust !== undefined) {
+                isExhaust = info.isExhaust;
+            } else {
+                isExhaust = lowerDesc.includes("消耗") || lowerDesc.includes("exhaust") || card.exhaust === true || card.is_exhaust === true;
+            }
+            if (isExhaust) exhaustCountDraft++;
         });
 
         let currentAvgCost = deckSize > 0 ? (currentTotalEnergyCost / deckSize) : 0;
@@ -1432,6 +1483,15 @@ function updateDrafts() {
             let draftCardCost = (typeof dStats.cost === 'number' && dStats.cost >= 0) ? dStats.cost : 0;
             let isFreeCantrip = (draftCardCost === 0 && savedInfo.tags.includes("润滑运转"));
 
+            // 👇 改动后的代码：特赦判定权完全移交给玩家的字典库 👇
+            let isExhaust = false;
+            if (savedInfo.isExhaust !== undefined) {
+                isExhaust = savedInfo.isExhaust; // 玩家的特赦令，拥有最高优先级
+            } else {
+                let lowerDesc = (dStats.desc || "").toLowerCase();
+                isExhaust = lowerDesc.includes("消耗") || lowerDesc.includes("exhaust") || draftCard.exhaust === true || draftCard.is_exhaust === true;
+            }
+
             if (savedInfo.tags.length === 0 && savedInfo.tier === "-") {
                 tdEval.innerHTML = `<span style="color:#e74c3c;">未鉴定</span>`;
             } else if (savedInfo.tier === "F") {
@@ -1458,16 +1518,24 @@ function updateDrafts() {
                         score += 80;
                         matchReasons.push(`[救命] 填补致命空缺(${tag})`);
                     } else if (currentCount >= capCount) {
+                        // ----------------------------------------------------
+                        // 核心修复：重构冗余惩罚的判定优先级，加入“挥发特赦”
+                        // ----------------------------------------------------
                         if (isFreeCantrip) {
                             score += 5;
                             matchReasons.push(`[白嫖] 零费运转无视冗余(${tag})`);
                         } else if (hasLifeSaver) {
                             score -= 5;
                             matchReasons.push(`[附带] 溢出但可接受(${tag})`);
+                        } else if (isExhaust && tag !== "润滑运转") {
+                            // 特赦令：只要它是消耗牌，打完就没，绝不判为毒药！
+                            score -= 10;
+                            matchReasons.push(`[挥发] 消耗特性无视污染(${tag})`);
                         } else {
                             score -= 100;
                             matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
                         }
+                        // ----------------------------------------------------
                     } else if (currentCount >= reqCount) {
                         score += 5;
                         matchReasons.push(`[容错] 引擎无损吸收(${tag})`);
