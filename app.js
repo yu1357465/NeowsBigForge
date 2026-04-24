@@ -1207,18 +1207,22 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
     let extraBaseDraw = baseDrawInput > 5 ? (baseDrawInput - 5) : 0;
 
+    // [改动后的代码]：引入物理厚度宽容度
     let junkPenalty = Math.ceil(fTierCount * 0.5);
     let dynamicDrawTarget = Math.max(4, 4 + Math.ceil(terminalCardCount * 0.8) + junkPenalty - extraBaseDraw);
+
+    // 核心修复：如果卡组绝对厚度不足 28 张，放宽冗余判定上限，允许并鼓励玩家抓取防烧牌或针对牌。
+    let thicknessTolerance = deckSize < 28 ? Math.floor((28 - deckSize) / 1.5) : 0;
 
     const BASE_REQ = {
         "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTarget
     };
 
     const MAX_CAP = {
-        "过渡输出": 5 + engineBonus,
-        "过渡防御": 8 + engineBonus,
-        "终端输出": 3 + Math.floor(engineBonus * 0.5),
-        "终端防御": 4 + Math.floor(engineBonus * 0.5),
+        "过渡输出": 5 + engineBonus + thicknessTolerance,
+        "过渡防御": 8 + engineBonus + thicknessTolerance,
+        "终端输出": 3 + Math.floor(engineBonus * 0.5) + thicknessTolerance,
+        "终端防御": 4 + Math.floor(engineBonus * 0.5) + thicknessTolerance,
         "润滑运转": 99
     };
 
@@ -1226,6 +1230,7 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     if (portContainer) {
         portContainer.innerHTML = '';
 
+        // [改动后的代码]：植入物理拦截器
         const PRIORITY_HIERARCHY = [
             { tag: "过渡输出", msg: "前期伤害匮乏！（强烈建议：优先抓取 AOE 群攻牌）" },
             { tag: "过渡防御", msg: "战损控制不足！（注意补充虚弱或群体降攻手段）" },
@@ -1237,17 +1242,25 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
         let topPriorityHTML = "";
 
         if (deckSize > 0) {
-            for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
-                let p = PRIORITY_HIERARCHY[i];
-                let currentCount = tagCounts[p.tag] || 0;
-                let reqCount = BASE_REQ[p.tag] || 1;
+            // 第一权重拦截：如果卡组薄于 25 张，无视所有质量评分，直接发出防烧警告！
+            if (deckSize < 25) {
+                topPriorityHTML = `<div style="background:#8e44ad; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);">
+                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 结构脆弱警告：物理厚度极低</div>
+                    <div style="font-size:0.85rem; opacity:0.9;">当前仅 ${deckSize} 张牌。极易在门扉等消耗战中被彻底掏空断档，建议适度抓取防烧牌扩充底盘！</div>
+                </div>`;
+            } else {
+                for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
+                    let p = PRIORITY_HIERARCHY[i];
+                    let currentCount = tagCounts[p.tag] || 0;
+                    let reqCount = BASE_REQ[p.tag] || 1;
 
-                if (currentCount < reqCount * 0.5) {
-                    topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px;">
-                        <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
-                        <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
-                    </div>`;
-                    break;
+                    if (currentCount < reqCount * 0.5) {
+                        topPriorityHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px;">
+                            <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
+                            <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
+                        </div>`;
+                        break;
+                    }
                 }
             }
 
@@ -2207,7 +2220,7 @@ async function refreshAndLoadHotSave() {
 
             // 核心修复：如果游戏没开或者没有存档，优雅地提示并退出，不报错
             if (res.status === 404) {
-                document.getElementById('dir-status-text').innerText = "[极速待命] 尚未侦测到游戏存档，请在游戏中开启对局...";
+                document.getElementById('dir-status-text').innerText = "[极速待命] 尚未侦测到任何进行中或历史对局...";
                 return;
             }
             if (!res.ok) throw new Error("Agent API 失败");
@@ -2523,16 +2536,31 @@ import urllib.parse
 PORT = 12026
 
 def get_active_dir():
+    # 1. 优先寻找进行中的对局锚点
     search_paths = [
         os.path.join(os.environ.get('APPDATA', ''), 'SlayTheSpire2', 'steam', '*', 'profile*', 'saves', 'current_run.save'),
         "C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/Saves/current_run.save",
         os.path.join(os.path.dirname(__file__), 'current_run.save')
     ]
-    found_files = []
-    for p in search_paths: found_files.extend(glob.glob(p))
-    if not found_files: return None
-    found_files.sort(key=os.path.getmtime, reverse=True)
-    return os.path.dirname(found_files[0])
+    found = []
+    for p in search_paths: found.extend(glob.glob(p))
+    if found:
+        found.sort(key=os.path.getmtime, reverse=True)
+        return os.path.dirname(found[0])
+        
+    # 2. 核心修复：如果没在打游戏（当前存档被删），寻找最新的历史记录来反推目录！
+    hist_paths = [
+        os.path.join(os.environ.get('APPDATA', ''), 'SlayTheSpire2', 'steam', '*', 'profile*', 'saves', 'history', '*.run'),
+        "C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/Saves/history/*.run"
+    ]
+    hist_found = []
+    for p in hist_paths: hist_found.extend(glob.glob(p))
+    if hist_found:
+        hist_found.sort(key=os.path.getmtime, reverse=True)
+        # 往上退两层：.../saves/history -> .../saves
+        return os.path.dirname(os.path.dirname(hist_found[0]))
+        
+    return None
 
 class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args): pass
