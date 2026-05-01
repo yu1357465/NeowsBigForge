@@ -1427,7 +1427,7 @@ function updateDrafts() {
             if (lowerDesc.includes("抽") || lowerDesc.includes("draw") || lowerDesc.includes("抽取")) drawCountDraft++;
 
             let isExhaust = false;
-            if (info.isExhaust !== undefined) {
+            if (info && info.isExhaust !== undefined) {
                 isExhaust = info.isExhaust;
             } else {
                 isExhaust = lowerDesc.includes("消耗") || lowerDesc.includes("exhaust") || card.exhaust === true || card.is_exhaust === true;
