@@ -1411,7 +1411,7 @@ function updateDrafts() {
 
             if (info && info.tier === "F") fTierCountDeck++;
 
-            if (info && info.tags) {
+            if (info && Array.isArray(info.tags)) {
                 info.tags.forEach(t => {
                     if (deckTagsCount[t] !== undefined) {
                         let actualWeight = (info.tier === 'F' && t !== "润滑运转") ? 0 : weight;
@@ -1473,8 +1473,12 @@ function updateDrafts() {
             tdCard.appendChild(createCardButton(draftCard.id, draftCard, "draft", index));
             tr.appendChild(tdCard);
 
+            // [修改为：终极物理防爆]
             let savedInfo = cardDictionary[draftCard.id] || { tier: "-", tags: [] };
-            if (!savedInfo.tags) savedInfo.tags = [];
+            // 强制校验它必须是个真正的数组！如果旧缓存混入了字符串或 Null，强制洗白为空数组，彻底杜绝 forEach 报错
+            if (!Array.isArray(savedInfo.tags)) {
+                savedInfo.tags = [];
+            }
 
             let tdTags = document.createElement('td');
             tdTags.style.padding = "6px 4px";
