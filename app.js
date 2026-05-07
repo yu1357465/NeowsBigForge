@@ -1451,15 +1451,18 @@ function updateDrafts() {
         let junkPenaltyDraft = Math.ceil(fTierCountDeck * 0.5);
         let dynamicDrawTargetRef = Math.max(4, 4 + Math.ceil(terminalCountInDeck * 0.8) + junkPenaltyDraft - extraBaseDrawDraft);
 
+        // 👇 核心同步：将仪表盘的“厚度宽容度”完美复刻到推演台！
+        let thicknessToleranceDraft = deckSize < 28 ? Math.floor((28 - deckSize) / 1.5) : 0;
+
         const TARGET_REQ_REF = {
             "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTargetRef
         };
 
         const TARGET_CAP_REF = {
-            "过渡输出": 5 + engineBonusDraft,
-            "过渡防御": 8 + engineBonusDraft,
-            "终端输出": 3 + Math.floor(engineBonusDraft * 0.5),
-            "终端防御": 4 + Math.floor(engineBonusDraft * 0.5),
+            "过渡输出": 5 + engineBonusDraft + thicknessToleranceDraft,
+            "过渡防御": 8 + engineBonusDraft + thicknessToleranceDraft,
+            "终端输出": 3 + Math.floor(engineBonusDraft * 0.5) + thicknessToleranceDraft,
+            "终端防御": 4 + Math.floor(engineBonusDraft * 0.5) + thicknessToleranceDraft,
             "润滑运转": 99
         };
 
@@ -1543,6 +1546,10 @@ function updateDrafts() {
                             // 特赦令：只要它是消耗牌，打完就没，绝不判为毒药！
                             score -= 10;
                             matchReasons.push(`[挥发] 消耗特性无视污染(${tag})`);
+                        } else if (deckSize < 25) {
+                            // 👇 核心修复：长线隐患特赦！卡组薄于 25 张时，拒绝下发“毒药”警告，鼓励扩充物理底盘
+                            score -= 10;
+                            matchReasons.push(`[填仓] 虽有冗余但可扩充底盘(${tag})`);
                         } else {
                             score -= 100;
                             matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
