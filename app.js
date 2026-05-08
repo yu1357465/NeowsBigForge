@@ -1252,18 +1252,15 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     let junkPenalty = Math.ceil(fTierCount * 0.5);
     let dynamicDrawTarget = Math.max(4, 4 + Math.ceil(terminalCardCount * 0.8) + junkPenalty - extraBaseDraw);
 
-    // 核心修复：如果卡组绝对厚度不足 28 张，放宽冗余判定上限，允许并鼓励玩家抓取防烧牌或针对牌。
-    let thicknessTolerance = deckSize < 28 ? Math.floor((28 - deckSize) / 1.5) : 0;
-
     const BASE_REQ = {
         "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTarget
     };
 
     const MAX_CAP = {
-        "过渡输出": 5 + engineBonus + thicknessTolerance,
-        "过渡防御": 8 + engineBonus + thicknessTolerance,
-        "终端输出": 3 + Math.floor(engineBonus * 0.5) + thicknessTolerance,
-        "终端防御": 4 + Math.floor(engineBonus * 0.5) + thicknessTolerance,
+        "过渡输出": 5 + engineBonus,
+        "过渡防御": 8 + engineBonus,
+        "终端输出": 3 + Math.floor(engineBonus * 0.5),
+        "终端防御": 4 + Math.floor(engineBonus * 0.5),
         "润滑运转": 99
     };
 
@@ -1284,14 +1281,14 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
         let strategicAlertHTML = "";
 
         if (deckSize > 0) {
-            // 1. 战术雷达：永远优先扫描当前的断档死穴 (决定生死)
+            // 纯粹的战术雷达：不再强行拦截卡组厚度，只看端口是否断档
             for (let i = 0; i < PRIORITY_HIERARCHY.length; i++) {
                 let p = PRIORITY_HIERARCHY[i];
                 let currentCount = tagCounts[p.tag] || 0;
                 let reqCount = BASE_REQ[p.tag] || 1;
 
                 if (currentCount < reqCount * 0.5) {
-                    tacticalAlertHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:8px;">
+                    tacticalAlertHTML = `<div style="background:#c0392b; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px;">
                         <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[最高指令] 断档警告：${p.tag}</div>
                         <div style="font-size:0.85rem; opacity:0.9;">${p.msg}</div>
                     </div>`;
@@ -1299,28 +1296,14 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
                 }
             }
 
-            // 若基础生存线均已达标
             if (!tacticalAlertHTML) {
-                tacticalAlertHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:8px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
+                tacticalAlertHTML = `<div style="background:#27ae60; color:white; padding:10px 12px; border-radius:6px; margin-bottom:12px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);">
                     <div style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">[运转良好] 卡组结构健康</div>
-                    <div style="font-size:0.85rem; opacity:0.9;">基础生存线均已达标。建议根据环境适量补充 AOE 或多段伤害以提升容错率。</div>
+                    <div style="font-size:0.85rem; opacity:0.9;">基础生存线均已达标。建议根据环境适量补充单卡质量高的终端卡牌。</div>
                 </div>`;
             }
 
-            // 2. 战略雷达：门扉防烧警告 (仅在中后期生效)
-            // 机制解析：14张牌以下属于开荒期，不触发长线警告干扰前期抓牌。15张到24张触发警告。
-            if (deckSize >= 15 && deckSize < 25) {
-                strategicAlertHTML = `<div style="background:#8e44ad; color:white; padding:8px 12px; border-radius:6px; margin-bottom:12px; border-left: 4px solid #9b59b6;">
-                    <div style="font-weight:bold; font-size:0.9rem; margin-bottom:2px;">[长线隐患] 结构脆弱 (仅 ${deckSize} 张)</div>
-                    <div style="font-size:0.75rem; opacity:0.9;">极易在后期的消耗战中被掏空，建议适度保留 C/F 级防烧垫材。</div>
-                </div>`;
-            } else {
-                // 为了布局美观，如果没有战略警告，增加一点下边距
-                tacticalAlertHTML = tacticalAlertHTML.replace('margin-bottom:8px;', 'margin-bottom:12px;');
-            }
-
-            topPriorityHTML = tacticalAlertHTML + strategicAlertHTML;
-            portContainer.innerHTML += topPriorityHTML;
+            portContainer.innerHTML += tacticalAlertHTML;
         }
 
         AVAILABLE_TAGS.forEach(tag => {
@@ -1451,18 +1434,16 @@ function updateDrafts() {
         let junkPenaltyDraft = Math.ceil(fTierCountDeck * 0.5);
         let dynamicDrawTargetRef = Math.max(4, 4 + Math.ceil(terminalCountInDeck * 0.8) + junkPenaltyDraft - extraBaseDrawDraft);
 
-        // 👇 核心同步：将仪表盘的“厚度宽容度”完美复刻到推演台！
-        let thicknessToleranceDraft = deckSize < 28 ? Math.floor((28 - deckSize) / 1.5) : 0;
 
         const TARGET_REQ_REF = {
             "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTargetRef
         };
 
         const TARGET_CAP_REF = {
-            "过渡输出": 5 + engineBonusDraft + thicknessToleranceDraft,
-            "过渡防御": 8 + engineBonusDraft + thicknessToleranceDraft,
-            "终端输出": 3 + Math.floor(engineBonusDraft * 0.5) + thicknessToleranceDraft,
-            "终端防御": 4 + Math.floor(engineBonusDraft * 0.5) + thicknessToleranceDraft,
+            "过渡输出": 5 + engineBonusDraft,
+            "过渡防御": 8 + engineBonusDraft,
+            "终端输出": 3 + Math.floor(engineBonusDraft * 0.5),
+            "终端防御": 4 + Math.floor(engineBonusDraft * 0.5),
             "润滑运转": 99
         };
 
@@ -1546,10 +1527,6 @@ function updateDrafts() {
                             // 特赦令：只要它是消耗牌，打完就没，绝不判为毒药！
                             score -= 10;
                             matchReasons.push(`[挥发] 消耗特性无视污染(${tag})`);
-                        } else if (deckSize < 25) {
-                            // 👇 核心修复：长线隐患特赦！卡组薄于 25 张时，拒绝下发“毒药”警告，鼓励扩充物理底盘
-                            score -= 10;
-                            matchReasons.push(`[填仓] 虽有冗余但可扩充底盘(${tag})`);
                         } else {
                             score -= 100;
                             matchReasons.push(`[毒药] 拒绝冗余卡手(${tag})`);
