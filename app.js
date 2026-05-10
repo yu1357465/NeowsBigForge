@@ -1248,12 +1248,38 @@ function updateDashboard(deckToAnalyze, avgCost, drawCount, exhaustCount) {
     let terminalCardCount = tagCounts["终端输出"] + tagCounts["终端防御"];
     let extraBaseDraw = baseDrawInput > 5 ? (baseDrawInput - 5) : 0;
 
-    // [改动后的代码]：引入物理厚度宽容度
+    // [改动后的代码]
     let junkPenalty = Math.ceil(fTierCount * 0.5);
     let dynamicDrawTarget = Math.max(4, 4 + Math.ceil(terminalCardCount * 0.8) + junkPenalty - extraBaseDraw);
 
+    // 新增：提取当前的运转端口真实数值
+    let currentEngineScore = tagCounts["润滑运转"] || 0;
+
+    // 基础防线底座 (默认正常需求)
+    let baseDefReq = 8;
+    let termDefReq = 4;
+
+    // 核心物理修正：引擎超载带来的“以转代守”豁免特权
+    // 当运转能力大幅超出及格线时，卡组启动极快，常规防御的硬性需求产生物理级坍缩
+    let engineOverdrive = Math.max(0, currentEngineScore - dynamicDrawTarget);
+
+    if (engineOverdrive >= 2) {
+        // 每溢出 1 点有效运转，过渡防御需求目标降低 0.8，终端大盾需求降低 0.5
+        let discountBase = Math.floor(engineOverdrive * 0.8);
+        let discountTerm = Math.floor(engineOverdrive * 0.5);
+
+        // 削减及格线目标，但保留最底线的防弹衣容错 (防某些反伤或强制先手的怪)
+        baseDefReq = Math.max(3, 8 - discountBase);
+        termDefReq = Math.max(1, 4 - discountTerm);
+    }
+
+    // 动态装载新的需求目标
     const BASE_REQ = {
-        "过渡输出": 5, "过渡防御": 8, "终端输出": 3, "终端防御": 4, "润滑运转": dynamicDrawTarget
+        "过渡输出": 5,
+        "过渡防御": baseDefReq,
+        "终端输出": 3,
+        "终端防御": termDefReq,
+        "润滑运转": dynamicDrawTarget
     };
 
     const MAX_CAP = {
